@@ -18,54 +18,56 @@ class PerfilUsuario extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Mi perfil'),
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            // Foto de perfil
-            const CircleAvatar(
-              radius: 50,
-              backgroundImage: NetworkImage('https://example.com/user.png'),
-            ),
+      body: Column(
+        children: [
+          // Foto de perfil
+          const CircleAvatar(
+            radius: 50,
+            backgroundImage: NetworkImage('https://example.com/user.png'),
+          ),
 
-            // Nombre y correo
-            const Padding(
-              padding: EdgeInsets.all(16.0),
-              child: Column(
-                children: [
-                  Text(
-                    'Nombre de usuario',
-                    style: TextStyle(fontSize: 20),
-                  ),
-                  Text(
-                    'correo@ejemplo.com',
-                    style: TextStyle(fontSize: 16),
-                  ),
-                ],
-              ),
+          // Nombre y correo
+          const Padding(
+            padding: EdgeInsets.all(16.0),
+            child: Column(
+              children: [
+                Text(
+                  'Nombre de usuario',
+                  style: TextStyle(fontSize: 20),
+                ),
+                Text(
+                  'correo@ejemplo.com',
+                  style: TextStyle(fontSize: 16),
+                ),
+              ],
             ),
+          ),
 
-            // Productos a la venta
-            const Divider(),
-            const Padding(
-              padding: EdgeInsets.all(16.0),
-              child: Text(
-                'Productos a la venta',
-                style: TextStyle(fontSize: 18),
-              ),
+          // Productos a la venta
+          const Divider(),
+          const Padding(
+            padding: EdgeInsets.all(16.0),
+            child: Text(
+              'Productos a la venta',
+              style: TextStyle(fontSize: 18),
             ),
+          ),
 
-            // Mostrar la lista de productos del usuario
-            ListView.builder(
-              shrinkWrap: true,
+          // Mostrar la lista de productos del usuario
+          Expanded(
+            child: ListView.builder(
               itemCount: productosUsuario.length,
               itemBuilder: (context, index) {
                 final producto = productosUsuario[index];
-                return MaterialButton( // Enables tapping for edit functionality
+                return MaterialButton(
+                  // Enables tapping for edit functionality
                   onPressed: () {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => ProductDetail(product: producto,),
+                        builder: (context) => ProductDetail(
+                          product: producto,
+                        ),
                       ),
                     );
                   },
@@ -78,17 +80,17 @@ class PerfilUsuario extends StatelessWidget {
                 );
               },
             ),
+          ),
 
-            // Editar perfil
-            const Divider(),
-            ElevatedButton(
-              onPressed: () {
-                // Navigate to edit profile screen
-              },
-              child: const Text('Editar perfil'),
-            ),
-          ],
-        ),
+          // Editar perfil
+          const Divider(),
+          ElevatedButton(
+            onPressed: () {
+              // Navigate to edit profile screen
+            },
+            child: const Text('Editar perfil'),
+          ),
+        ],
       ),
     );
   }
