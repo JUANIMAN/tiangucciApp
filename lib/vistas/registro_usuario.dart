@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:tiangucci/vistas/login.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -95,20 +94,6 @@ class _RegisterPageState extends State<RegisterPage> {
                     }
                   },
                   child: const Text('Registrarse'),
-                ),
-
-                // ¿Ya tienes una cuenta?
-                const SizedBox(height: 16.0),
-                TextButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const LoginPage(),
-                      ),
-                    );
-                  },
-                  child: const Text('¿Ya tienes una cuenta? Inicia sesión'),
                 ),
               ],
             ),
