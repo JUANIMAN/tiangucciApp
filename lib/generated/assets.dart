@@ -2,7 +2,14 @@
 class Assets {
   Assets._();
 
+  static const String imagesAuriculares = 'assets/images/auriculares.jpeg';
   static const String imagesBolso = 'assets/images/bolso.jpeg';
+  static const String imagesBotella = 'assets/images/botella.jpeg';
+  static const String imagesMancuernas = 'assets/images/mancuernas.jpeg';
+  static const String imagesPantalones = 'assets/images/pantalones.jpeg';
+  static const String imagesPerfil = 'assets/images/perfil.png';
+  static const String imagesPlayera = 'assets/images/playera.jpeg';
+  static const String imagesReloj = 'assets/images/reloj.png';
   static const String imagesZapatos = 'assets/images/zapatos.jpeg';
 
 }

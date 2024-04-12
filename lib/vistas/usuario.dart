@@ -21,10 +21,11 @@ class PerfilUsuario extends StatelessWidget {
       ),
       body: Column(
         children: [
+          const SizedBox(height: 20),
           // Foto de perfil
           const CircleAvatar(
             radius: 50,
-            backgroundImage: NetworkImage('https://example.com/user.png'),
+            backgroundImage: AssetImage(Assets.imagenUsuario),
           ),
 
           // Nombre y correo
@@ -95,4 +96,9 @@ class PerfilUsuario extends StatelessWidget {
       ),
     );
   }
+}
+
+mixin Assets {
+  static const String imagePath = 'assets/images';
+  static const String imagenUsuario = '$imagePath/perfil.png';
 }
