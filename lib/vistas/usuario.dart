@@ -16,6 +16,7 @@ class PerfilUsuario extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: const Text('Mi perfil'),
       ),
       body: Column(
