@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:tiangucci/vistas/lista_articulos.dart';
 import 'package:tiangucci/vistas/productos.dart';
-import 'package:tiangucci/vistas/subir_articulo.dart';
 
 class ProductDetail extends StatelessWidget {
   final Product product;
