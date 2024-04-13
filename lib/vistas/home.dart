@@ -31,7 +31,7 @@ class _MyHomePageState extends State<MyHomePage> {
       );
     } else {
       // Navegar a la vista de inicio de sesión
-      Navigator.push(
+      Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const LoginPage()),
       );

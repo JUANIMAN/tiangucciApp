@@ -4,7 +4,7 @@ Aplicacion Movil para el tiangucci
 
 ## Getting Started
 
-This project is a starting point for a Flutter application.
+Aplicacion para ayudar a la comunidad de la fes aragon, en la compraventa de diversos insumos.
 
 A few resources to get you started if this is your first Flutter project:
 
