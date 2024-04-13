@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:tiangucci/vistas/lista_articulos.dart';
+import 'package:tiangucci/vistas/articulo.dart';
 import 'package:tiangucci/vistas/login.dart';
+import 'package:tiangucci/vistas/productos.dart';
 import 'package:tiangucci/vistas/usuario.dart';
 
 class MyHomePage extends StatefulWidget {
@@ -13,6 +14,8 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
+  final items = ["todos","ropa","deporte","bolsos","electronica","otros"];
+  String selectedValue = 'todos';
   bool _isLoggedIn = false;
 
   Future<void> _checkLogin() async {
@@ -27,7 +30,6 @@ class _MyHomePageState extends State<MyHomePage> {
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => const PerfilUsuario()),
-
       );
     } else {
       // Navegar a la vista de inicio de sesión
@@ -49,20 +51,85 @@ class _MyHomePageState extends State<MyHomePage> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: const Text("Buscaste - Categoria Dama"),
+        title: const Text("Productos"),
         actions: [
+          Container(
+            margin: const EdgeInsets.all(10.0),
+            padding: const EdgeInsets.only(left: 15.0, right: 5.0),
+            decoration: BoxDecoration(
+                color: Colors.white, borderRadius: BorderRadius.circular(10)),
+            child: DropdownButton<String>(
+              value: selectedValue,
+              onChanged: (String? newValue) {
+                setState(() => selectedValue = newValue!);
+              },
+              items: items
+                  .map<DropdownMenuItem<String>>(
+                      (value) => DropdownMenuItem<String>(
+                    value: value,
+                    child: Text(value),
+                  ))
+                  .toList(),
+              icon: const Icon(Icons.arrow_drop_down),
+              underline: const SizedBox(),
+            ),
+          ),
           IconButton(
             icon: const Icon(
-              Icons.face_2_outlined,
+              Icons.person,
             ),
+            iconSize: 40,
             onPressed: () {
               _handleProfile();
             },
-            iconSize: 45,
           ),
         ],
       ),
-      body: const ProductList(), //esto debe poder precionarse
+      body: GridView.builder(
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2, // Dos columnas
+          childAspectRatio: 0.8, // Relación de aspecto para la imagen
+        ),
+        itemCount: productList.length,
+        itemBuilder: (context, index) {
+          final product = productList[index];
+          return GestureDetector(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ProductDetail(product: product),
+                ),
+              );
+            },
+            child: Card(
+              elevation: 4,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Image.asset(
+                    product.image,
+                    height: 150,
+                    width: 150,
+                    fit: BoxFit.cover,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    product.name,
+                    style: const TextStyle(
+                        fontSize: 16, fontWeight: FontWeight.bold),
+                    textAlign: TextAlign.center,
+                  ),
+                  Text(
+                    '\$${product.price.toStringAsFixed(2)}',
+                    style: const TextStyle(fontSize: 14),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
     );
   }
 }
