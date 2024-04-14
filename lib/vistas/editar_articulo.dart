@@ -10,18 +10,15 @@ class EditarArticulo extends StatefulWidget {
 }
 
 class _EditarArticulo extends State<EditarArticulo> {
-
-
-
   @override
   Widget build(BuildContext context) {
-    final _descripcion = TextEditingController(text: widget.product.description);
-    final _price = TextEditingController(text: widget.product.price.toString());
-    final _nameController = TextEditingController(text: widget.product.name);
+    final descripcion = TextEditingController(text: widget.product.description);
+    final price = TextEditingController(text: widget.product.price.toString());
+    final nameController = TextEditingController(text: widget.product.name);
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: Text("Editar producto"),
+        title: const Text("Editar producto"),
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -34,8 +31,8 @@ class _EditarArticulo extends State<EditarArticulo> {
                 // Titulo producto
                 const SizedBox(height: 16.0),
                 TextFormField(
-                  controller: _nameController,
-                  decoration: InputDecoration(
+                  controller: nameController,
+                  decoration: const InputDecoration(
                     labelText: 'Titulo',
                     prefixIcon: Icon(Icons.text_fields),
                   ),
@@ -50,7 +47,7 @@ class _EditarArticulo extends State<EditarArticulo> {
                 // Precio
                 const SizedBox(height: 16.0),
                 TextFormField(
-                  controller: _price,
+                  controller: price,
                   decoration: const InputDecoration(
                     labelText: 'Precio',
                     prefixIcon: Icon(Icons.price_check),
@@ -66,7 +63,7 @@ class _EditarArticulo extends State<EditarArticulo> {
                 // Correo electrónico
                 const SizedBox(height: 16.0),
                 TextFormField(
-                  controller: _descripcion,
+                  controller: descripcion,
                   decoration: const InputDecoration(
                     labelText: 'Descripcion',
                     prefixIcon: Icon(Icons.text_snippet_outlined),
@@ -83,7 +80,7 @@ class _EditarArticulo extends State<EditarArticulo> {
                 const SizedBox(height: 16.0),
                 ElevatedButton(
                   onPressed: () {
-                    print(_nameController.text);
+                    print(nameController.text);
                   },
                   child: const Text('SUBIR CAMBIOS'),
                 ),

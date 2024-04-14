@@ -14,8 +14,8 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
-  final items = ["todos", "ropa", "deporte", "bolsos", "electronica", "otros"];
-  String selectedValue = 'todos';
+  final category = ["todos", "ropa", "deporte", "electronica", "otros"];
+  String selectedCategory = 'todos';
   bool _isLoggedIn = false;
 
   Future<void> _checkLogin() async {
@@ -40,6 +40,14 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
+  List<Product> _filterProducts(String selectedCategory) {
+    if (selectedCategory == 'todos') {
+      return productList; // Mostrar todos los productos
+    } else {
+      return productList.where((product) => product.category.name == selectedCategory).toList(); // Filtrar por categoría seleccionada
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -59,11 +67,13 @@ class _MyHomePageState extends State<MyHomePage> {
             decoration: BoxDecoration(
                 color: Colors.white, borderRadius: BorderRadius.circular(10)),
             child: DropdownButton<String>(
-              value: selectedValue,
+              value: selectedCategory,
               onChanged: (String? newValue) {
-                setState(() => selectedValue = newValue!);
+                setState(() {
+                  selectedCategory = newValue!;
+                });
               },
-              items: items
+              items: category
                   .map<DropdownMenuItem<String>>(
                       (value) => DropdownMenuItem<String>(
                             value: value,
@@ -90,9 +100,9 @@ class _MyHomePageState extends State<MyHomePage> {
           crossAxisCount: 2, // Dos columnas
           childAspectRatio: 0.6, // Relación de aspecto para la imagen
         ),
-        itemCount: productList.length,
+        itemCount: _filterProducts(selectedCategory).length,
         itemBuilder: (context, index) {
-          final product = productList[index];
+          final product = _filterProducts(selectedCategory)[index];
           return GestureDetector(
             onTap: () {
               Navigator.push(
@@ -109,11 +119,13 @@ class _MyHomePageState extends State<MyHomePage> {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Expanded(
-                    child: ClipRRect(  // Recortar la imagen con bordes redondeados (opcional)
+                    child: ClipRRect(
+                      // Recortar la imagen con bordes redondeados (opcional)
                       borderRadius: BorderRadius.circular(14.0),
                       child: Image.asset(
                         product.image,
-                        fit: BoxFit.cover, // Rellena el contenedor manteniendo la relación de aspecto
+                        fit: BoxFit
+                            .cover, // Rellena el contenedor manteniendo la relación de aspecto
                       ),
                     ),
                   ),
