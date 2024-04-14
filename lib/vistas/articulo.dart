@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:tiangucci/vistas/editar_articulo.dart';
 import 'package:tiangucci/vistas/productos.dart';
 
 class ProductDetail extends StatelessWidget {
@@ -38,7 +39,12 @@ class ProductDetail extends StatelessWidget {
                 visible: propietario,
                 child: ElevatedButton(
                   onPressed: () {
-
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => EditarArticulo(product: product,),
+                      ),
+                    );
                   },
                   child: const Text('EDITAR PRODUCTO'),
                 ),
