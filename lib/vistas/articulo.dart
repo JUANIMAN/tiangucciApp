@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:tiangucci/vistas/productos.dart';
 
 class ProductDetail extends StatelessWidget {
+  final bool propietario;
   final Product product;
 
-  const ProductDetail({super.key, required this.product});
+  const ProductDetail({super.key, required this.product, required this.propietario});
 
   @override
   Widget build(BuildContext context) {
@@ -31,6 +32,16 @@ class ProductDetail extends StatelessWidget {
             Text(
               product.description,
               textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 20),
+            Visibility(
+                visible: propietario,
+                child: ElevatedButton(
+                  onPressed: () {
+
+                  },
+                  child: const Text('EDITAR PRODUCTO'),
+                ),
             ),
           ],
         ),

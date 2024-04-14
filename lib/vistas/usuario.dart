@@ -68,6 +68,7 @@ class PerfilUsuario extends StatelessWidget {
                       context,
                       MaterialPageRoute(
                         builder: (context) => ProductDetail(
+                          propietario: true,
                           product: producto,
                         ),
                       ),

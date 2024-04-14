@@ -98,7 +98,9 @@ class _MyHomePageState extends State<MyHomePage> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => ProductDetail(product: product),
+                  builder: (context) => ProductDetail(
+                      propietario: false,
+                      product: product),
                 ),
               );
             },
