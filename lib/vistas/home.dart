@@ -14,7 +14,7 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
-  final items = ["todos","ropa","deporte","bolsos","electronica","otros"];
+  final items = ["todos", "ropa", "deporte", "bolsos", "electronica", "otros"];
   String selectedValue = 'todos';
   bool _isLoggedIn = false;
 
@@ -66,9 +66,9 @@ class _MyHomePageState extends State<MyHomePage> {
               items: items
                   .map<DropdownMenuItem<String>>(
                       (value) => DropdownMenuItem<String>(
-                    value: value,
-                    child: Text(value),
-                  ))
+                            value: value,
+                            child: Text(value),
+                          ))
                   .toList(),
               icon: const Icon(Icons.arrow_drop_down),
               underline: const SizedBox(),
@@ -88,7 +88,7 @@ class _MyHomePageState extends State<MyHomePage> {
       body: GridView.builder(
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 2, // Dos columnas
-          childAspectRatio: 0.8, // Relación de aspecto para la imagen
+          childAspectRatio: 0.6, // Relación de aspecto para la imagen
         ),
         itemCount: productList.length,
         itemBuilder: (context, index) {
@@ -98,9 +98,8 @@ class _MyHomePageState extends State<MyHomePage> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => ProductDetail(
-                      propietario: false,
-                      product: product),
+                  builder: (context) =>
+                      ProductDetail(propietario: false, product: product),
                 ),
               );
             },
@@ -109,11 +108,14 @@ class _MyHomePageState extends State<MyHomePage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Image.asset(
-                    product.image,
-                    height: 150,
-                    width: 150,
-                    fit: BoxFit.cover,
+                  Expanded(
+                    child: ClipRRect(  // Recortar la imagen con bordes redondeados (opcional)
+                      borderRadius: BorderRadius.circular(14.0),
+                      child: Image.asset(
+                        product.image,
+                        fit: BoxFit.cover, // Rellena el contenedor manteniendo la relación de aspecto
+                      ),
+                    ),
                   ),
                   const SizedBox(height: 8),
                   Text(

@@ -75,7 +75,17 @@ class PerfilUsuario extends StatelessWidget {
                     );
                   },
                   child: ListTile(
-                    leading: Image.asset(producto.image),
+                    leading: SizedBox(  // Contenedor con tamaño fijo
+                      width: 60,
+                      height: 60,
+                      child: ClipRRect(  // Recortar la imagen con bordes redondeados (opcional)
+                        borderRadius: BorderRadius.circular(8.0),
+                        child: Image.asset(
+                          producto.image,
+                          fit: BoxFit.cover, // Rellena el contenedor manteniendo la relación de aspecto
+                        ),
+                      ),
+                    ),
                     title: Text(producto.name),
                     subtitle: Text('\$${producto.price.toStringAsFixed(2)}'),
                     trailing: const Icon(Icons.arrow_forward),
