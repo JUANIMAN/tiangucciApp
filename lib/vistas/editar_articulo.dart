@@ -28,17 +28,34 @@ class _EditarArticulo extends State<EditarArticulo> {
               children: [
                 Image.asset(widget.product.image), //Imagen producto
 
-                // Titulo producto
+                // Nombre del producto
                 const SizedBox(height: 16.0),
                 TextFormField(
                   controller: nameController,
                   decoration: const InputDecoration(
-                    labelText: 'Titulo',
-                    prefixIcon: Icon(Icons.text_fields),
+                    labelText: 'Nombre del producto',
+                    prefixIcon: Icon(Icons.title),
                   ),
                   validator: (value) {
                     if (value!.isEmpty) {
-                      return 'El titulo es obligatorio';
+                      return 'El nombre del producto es obligatorio';
+                    }
+                    return null;
+                  },
+                ),
+
+                // Descripcion del producto
+                const SizedBox(height: 16.0),
+                TextFormField(
+                  controller: descripcion,
+                  maxLines: 5,
+                  decoration: const InputDecoration(
+                    labelText: 'Descripcion',
+                    prefixIcon: Icon(Icons.text_snippet_outlined),
+                  ),
+                  validator: (value) {
+                    if (value!.isEmpty) {
+                      return 'La descripción del producto es obligatoria';
                     }
                     return null;
                   },
@@ -50,27 +67,11 @@ class _EditarArticulo extends State<EditarArticulo> {
                   controller: price,
                   decoration: const InputDecoration(
                     labelText: 'Precio',
-                    prefixIcon: Icon(Icons.price_check),
+                    prefixIcon: Icon(Icons.currency_exchange),
                   ),
                   validator: (value) {
                     if (value!.isEmpty) {
                       return 'El precio es obligatorio';
-                    }
-                    return null;
-                  },
-                ),
-
-                // Correo electrónico
-                const SizedBox(height: 16.0),
-                TextFormField(
-                  controller: descripcion,
-                  decoration: const InputDecoration(
-                    labelText: 'Descripcion',
-                    prefixIcon: Icon(Icons.text_snippet_outlined),
-                  ),
-                  validator: (value) {
-                    if (value!.isEmpty) {
-                      return 'La descripcion es obligatoria';
                     }
                     return null;
                   },

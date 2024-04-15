@@ -86,9 +86,9 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
           IconButton(
             icon: const Icon(
-              Icons.person,
+              Icons.account_circle,
             ),
-            iconSize: 40,
+            iconSize: 35,
             onPressed: () {
               _handleProfile();
             },

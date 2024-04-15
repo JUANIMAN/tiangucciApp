@@ -73,7 +73,7 @@ class _SubirProductoState extends State<SubirProducto> {
                   maxLines: 5,
                   decoration: const InputDecoration(
                       labelText: 'Descripción del producto',
-                      prefixIcon: Icon(Icons.text_fields)),
+                      prefixIcon: Icon(Icons.text_snippet_outlined)),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'La descripción del producto es obligatoria';
