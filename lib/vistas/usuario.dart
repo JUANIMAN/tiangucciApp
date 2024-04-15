@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tiangucci/vistas/articulo.dart';
+import 'package:tiangucci/vistas/home.dart';
 import 'package:tiangucci/vistas/productos.dart';
+import 'package:tiangucci/vistas/subir_articulo.dart';
 
 class PerfilUsuario extends StatelessWidget {
   const PerfilUsuario({super.key});
@@ -13,6 +16,14 @@ class PerfilUsuario extends StatelessWidget {
   Widget build(BuildContext context) {
     // Obtener la lista de productos del usuario
     final List<Product> productosUsuario = obtenerProductosUsuario();
+    final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
+
+    Future<bool> signOut() async {
+      // Cerrar sesion
+      final prefs = await _prefs;
+      prefs.setBool('isLoggedIn', false);
+      return true;
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -75,14 +86,17 @@ class PerfilUsuario extends StatelessWidget {
                     );
                   },
                   child: ListTile(
-                    leading: SizedBox(  // Contenedor con tamaño fijo
+                    leading: SizedBox(
+                      // Contenedor con tamaño fijo
                       width: 60,
                       height: 60,
-                      child: ClipRRect(  // Recortar la imagen con bordes redondeados (opcional)
+                      child: ClipRRect(
+                        // Recortar la imagen con bordes redondeados (opcional)
                         borderRadius: BorderRadius.circular(8.0),
                         child: Image.asset(
                           producto.image,
-                          fit: BoxFit.cover, // Rellena el contenedor manteniendo la relación de aspecto
+                          fit: BoxFit
+                              .cover, // Rellena el contenedor manteniendo la relación de aspecto
                         ),
                       ),
                     ),
@@ -95,13 +109,45 @@ class PerfilUsuario extends StatelessWidget {
             ),
           ),
 
-          // Editar perfil
           const Divider(),
+          Row(
+            mainAxisAlignment:
+                MainAxisAlignment.center, // Center the buttons horizontally
+            children: [
+              ElevatedButton(
+                onPressed: () {
+                  // Navegar a la vista editar Perfil
+                },
+                child: const Text('Editar Perfil'),
+              ),
+              const SizedBox(width: 10),
+              ElevatedButton(
+                onPressed: () {
+                  // Navegar a la vista subir producto
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => const ProductUploadView()),
+                  );
+                },
+                child: const Text('Subir producto'),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 8),
           ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              foregroundColor: Colors.white,
+              backgroundColor: Colors.red,
+            ),
             onPressed: () {
-              // Navigate to edit profile screen
+              // Cerrar sesion y volver al home
+              signOut();
+              Navigator.of(context).pushReplacement(
+                  MaterialPageRoute(builder: (context) => const MyHomePage()));
             },
-            child: const Text('Editar perfil'),
+            child: const Text('Cerrar Sesión'),
           ),
         ],
       ),
