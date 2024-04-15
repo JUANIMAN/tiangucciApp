@@ -3,14 +3,14 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
-class ProductUploadView extends StatefulWidget {
-  const ProductUploadView({super.key});
+class SubirProducto extends StatefulWidget {
+  const SubirProducto({super.key});
 
   @override
-  State<ProductUploadView> createState() => _ProductUploadViewState();
+  State<SubirProducto> createState() => _SubirProductoState();
 }
 
-class _ProductUploadViewState extends State<ProductUploadView> {
+class _SubirProductoState extends State<SubirProducto> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _descriptionController = TextEditingController();
@@ -42,6 +42,7 @@ class _ProductUploadViewState extends State<ProductUploadView> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: const Text('Subir Producto'),
       ),
       body: SingleChildScrollView(

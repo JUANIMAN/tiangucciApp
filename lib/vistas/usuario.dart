@@ -127,7 +127,7 @@ class PerfilUsuario extends StatelessWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                        builder: (context) => const ProductUploadView()),
+                        builder: (context) => const SubirProducto()),
                   );
                 },
                 child: const Text('Subir producto'),
