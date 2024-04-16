@@ -1,20 +1,35 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class RegisterPage extends StatefulWidget {
-  const RegisterPage({super.key});
+  final bool editar;
+  const RegisterPage({super.key, required this.editar});
 
   @override
   State<RegisterPage> createState() => _RegisterPageState();
 }
 
 class _RegisterPageState extends State<RegisterPage> {
+  late final TextEditingController _emailController;
+  late final TextEditingController _passwordController;
+  late final TextEditingController _nameController;
   final _formKey = GlobalKey<FormState>();
-  final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
-  final _nameController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    // Inicializar los controladores con valores predeterminados o vacíos.
+    _nameController = TextEditingController(text: widget.editar ? "JP" : "");
+    _emailController =
+        TextEditingController(text: widget.editar ? "jp@aragon.com" : "");
+    _passwordController =
+        TextEditingController(text: widget.editar ? "contraseña" : "");
+  }
 
   @override
   Widget build(BuildContext context) {
+    final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
@@ -32,7 +47,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 // Título
                 const SizedBox(height: 16.0),
                 Text(
-                  'Registrarse',
+                  widget.editar ? 'Editar perfil' : 'Registrarse',
                   style: Theme.of(context).textTheme.headlineMedium,
                 ),
 

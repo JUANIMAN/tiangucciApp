@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tiangucci/vistas/articulo.dart';
 import 'package:tiangucci/vistas/home.dart';
 import 'package:tiangucci/vistas/productos.dart';
+import 'package:tiangucci/vistas/registro_usuario.dart';
 import 'package:tiangucci/vistas/subir_articulo.dart';
 
 class PerfilUsuario extends StatelessWidget {
@@ -117,6 +118,12 @@ class PerfilUsuario extends StatelessWidget {
               ElevatedButton(
                 onPressed: () {
                   // Navegar a la vista editar Perfil
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const RegisterPage(editar: true,),
+                    ),
+                  );
                 },
                 child: const Text('Editar Perfil'),
               ),
