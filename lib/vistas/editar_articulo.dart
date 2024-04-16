@@ -26,7 +26,7 @@ class _EditarArticulo extends State<EditarArticulo> {
           child: Form(
             child: Column(
               children: [
-                Image.asset(widget.product.image), //Imagen producto
+                Image.asset(widget.product.images.first), //Imagen producto
 
                 // Nombre del producto
                 const SizedBox(height: 16.0),

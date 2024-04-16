@@ -94,7 +94,7 @@ class PerfilUsuario extends StatelessWidget {
                         // Recortar la imagen con bordes redondeados (opcional)
                         borderRadius: BorderRadius.circular(8.0),
                         child: Image.asset(
-                          producto.image,
+                          producto.images.first,
                           fit: BoxFit
                               .cover, // Rellena el contenedor manteniendo la relación de aspecto
                         ),

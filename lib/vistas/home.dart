@@ -123,7 +123,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       // Recortar la imagen con bordes redondeados (opcional)
                       borderRadius: BorderRadius.circular(14.0),
                       child: Image.asset(
-                        product.image,
+                        product.images.first,
                         fit: BoxFit
                             .cover, // Rellena el contenedor manteniendo la relación de aspecto
                       ),
