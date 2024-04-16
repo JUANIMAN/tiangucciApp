@@ -1,6 +1,4 @@
 import 'dart:io';
-
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -17,18 +15,15 @@ class _SubirProductoState extends State<SubirProducto> {
   final _descriptionController = TextEditingController();
   final _priceController = TextEditingController();
   final _categoryController = TextEditingController();
-  File? _imageFile;
+  List<File>? _imageFile;
   final List<String> _categories = ['electronica', 'ropa', 'deporte', 'otros'];
   String? _selectedCategory;
 
-  Future<void> _pickImage() async {
-    final pickedImage =
-        await ImagePicker().pickImage(source: ImageSource.gallery);
-    if (pickedImage != null) {
-      setState(() {
-        _imageFile = File(pickedImage.path);
-      });
-    }
+  Future<void> _pickImages() async {
+    final pickedImages = await ImagePicker().pickMultiImage();
+    setState(() {
+      _imageFile = pickedImages.map((image) => File(image.path)).toList();
+    });
   }
 
   Future<void> _uploadProduct() async {
@@ -127,20 +122,48 @@ class _SubirProductoState extends State<SubirProducto> {
                   },
                 ),
 
-                // Product Image Picker
-                Column(
-                  children: [
-                    TextButton(
-                      onPressed: _pickImage,
-                      child: const Text('Seleccionar imagen'),
-                    ),
-                    if (_imageFile != null)
-                      Image.file(
-                        _imageFile!,
+                TextButton(
+                  onPressed: _pickImages,
+                  child: const Text('Seleccionar imagenes'),
+                ),
+
+                Row(
+                  children: <Widget>[
+                    Expanded(
+                      child: SizedBox(
                         height: 200.0,
-                        width: 200.0,
-                        fit: BoxFit.cover,
+                        child: ListView.builder(
+                          scrollDirection: Axis.horizontal,
+                          itemCount: _imageFile?.length ?? 0, // Verifica si _imageFile no es nulo
+                          itemBuilder: (BuildContext ctxt, int index) {
+                            final imageFile = _imageFile?[index];
+                            if (imageFile != null) {
+                              return Stack(
+                                alignment: Alignment.topRight,
+                                children: <Widget>[
+                                  Image.file(
+                                    imageFile,
+                                    width: 200.0,
+                                    height: 200.0,
+                                    fit: BoxFit.cover,
+                                  ),
+                                  IconButton(
+                                    icon: const Icon(Icons.remove_circle, color: Colors.red),
+                                    onPressed: () {
+                                      setState(() {
+                                        _imageFile?.removeAt(index); // Elimina la imagen seleccionada
+                                      });
+                                    },
+                                  ),
+                                ],
+                              );
+                            } else {
+                              return const Text('No hay imagen seleccionada');
+                            }
+                          },
+                        ),
                       ),
+                    ),
                   ],
                 ),
 
