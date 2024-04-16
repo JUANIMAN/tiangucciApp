@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
+import 'package:photo_view/photo_view.dart';
 import 'package:tiangucci/vistas/editar_articulo.dart';
 import 'package:tiangucci/vistas/productos.dart';
 
@@ -26,7 +27,21 @@ class ProductDetail extends StatelessWidget {
                 items: product.images.map((image) {
                   return Builder(
                     builder: (BuildContext context) {
-                      return Image.asset(image, fit: BoxFit.cover);
+                      return GestureDetector(
+                        onTap: () {
+                          showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return PhotoView(
+                                  imageProvider: AssetImage(product.images.first),
+                                  initialScale: PhotoViewComputedScale.contained * 1,
+                                  minScale: PhotoViewComputedScale.contained * 1,
+                                  maxScale: PhotoViewComputedScale.covered);
+                            },
+                          );
+                        },
+                        child: Image.asset(image, fit: BoxFit.cover),
+                      );
                     },
                   );
                 }).toList(),
@@ -36,8 +51,22 @@ class ProductDetail extends StatelessWidget {
                 ),
               )
             else if (product.images.isNotEmpty)
-              Image.asset(product.images.first,
-                  height: 300.0, width: double.infinity, fit: BoxFit.cover),
+              GestureDetector(
+                onTap: () {
+                  showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return PhotoView(
+                          imageProvider: AssetImage(product.images.first),
+                          initialScale: PhotoViewComputedScale.contained * 1,
+                          minScale: PhotoViewComputedScale.contained * 1,
+                          maxScale: PhotoViewComputedScale.covered);
+                    },
+                  );
+                },
+                child: Image.asset(product.images.first,
+                    height: 300.0, width: double.infinity, fit: BoxFit.cover),
+              ),
             const SizedBox(height: 20),
             Text(
               product.name,

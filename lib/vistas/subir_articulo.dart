@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -127,7 +128,7 @@ class _SubirProductoState extends State<SubirProducto> {
                 ),
 
                 // Product Image Picker
-                Row(
+                Column(
                   children: [
                     TextButton(
                       onPressed: _pickImage,
@@ -136,8 +137,8 @@ class _SubirProductoState extends State<SubirProducto> {
                     if (_imageFile != null)
                       Image.file(
                         _imageFile!,
-                        width: 100,
-                        height: 100,
+                        height: 200.0,
+                        width: 200.0,
                         fit: BoxFit.cover,
                       ),
                   ],
