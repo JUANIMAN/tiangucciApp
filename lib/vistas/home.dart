@@ -44,7 +44,9 @@ class _MyHomePageState extends State<MyHomePage> {
     if (selectedCategory == 'todos') {
       return productList; // Mostrar todos los productos
     } else {
-      return productList.where((product) => product.category.name == selectedCategory).toList(); // Filtrar por categoría seleccionada
+      return productList
+          .where((product) => product.category.name == selectedCategory)
+          .toList(); // Filtrar por categoría seleccionada
     }
   }
 
@@ -120,13 +122,10 @@ class _MyHomePageState extends State<MyHomePage> {
                 children: [
                   Expanded(
                     child: ClipRRect(
-                      // Recortar la imagen con bordes redondeados (opcional)
+                      // Recortar la imagen con bordes redondeados
                       borderRadius: BorderRadius.circular(14.0),
-                      child: Image.asset(
-                        product.images.first,
-                        fit: BoxFit
-                            .cover, // Rellena el contenedor manteniendo la relación de aspecto
-                      ),
+                      child:
+                          Image.asset(product.images.first, fit: BoxFit.cover),
                     ),
                   ),
                   const SizedBox(height: 8),
