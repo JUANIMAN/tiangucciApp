@@ -121,7 +121,9 @@ class PerfilUsuario extends StatelessWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => const RegisterPage(editar: true,),
+                      builder: (context) => const RegisterPage(
+                        editar: true,
+                      ),
                     ),
                   );
                 },
@@ -151,8 +153,10 @@ class PerfilUsuario extends StatelessWidget {
             onPressed: () {
               // Cerrar sesion y volver al home
               signOut();
-              Navigator.of(context).pushReplacement(
-                  MaterialPageRoute(builder: (context) => const MyHomePage()));
+              Navigator.of(context).pushAndRemoveUntil(
+                MaterialPageRoute(builder: (context) => const MyHomePage()),
+                (Route<dynamic> route) => false,
+              );
             },
             child: const Text('Cerrar Sesión'),
           ),

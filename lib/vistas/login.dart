@@ -29,14 +29,6 @@ class _LoginPageState extends State<LoginPage> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        leading: IconButton(
-          onPressed: (){
-            Navigator.of(context).pushReplacement(MaterialPageRoute(
-                builder: (context) => const MyHomePage()));
-            // Iniciar sesión
-          },
-          icon: const Icon(Icons.arrow_back),
-        ),
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -94,8 +86,11 @@ class _LoginPageState extends State<LoginPage> {
                   onPressed: () {
                     if (_formKey.currentState!.validate()) {
                       _handleLogin();
-                      Navigator.of(context).pushReplacement(MaterialPageRoute(
-                          builder: (context) => const MyHomePage()));
+                      Navigator.of(context).pushAndRemoveUntil(
+                        MaterialPageRoute(
+                            builder: (context) => const MyHomePage()),
+                        (Route<dynamic> route) => false,
+                      );
                       // Iniciar sesión
                     }
                   },
@@ -109,7 +104,9 @@ class _LoginPageState extends State<LoginPage> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => const RegisterPage(editar: false,),
+                        builder: (context) => const RegisterPage(
+                          editar: false,
+                        ),
                       ),
                     );
                   },
