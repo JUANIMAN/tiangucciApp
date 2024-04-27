@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "556938285930",
+    "project_id": "tianguccibd",
+    "storage_bucket": "tianguccibd.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:556938285930:android:3fa18b6f2eabbfa694cb13",
+        "android_client_info": {
+          "package_name": "fes.aragon.ico.tiangucci"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD3xXhUd58r5ci1pXGrV6PeGkBcMyBv-dY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

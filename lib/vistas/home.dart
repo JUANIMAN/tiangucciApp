@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tiangucci/vistas/articulo.dart';
@@ -97,51 +98,27 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
         ],
       ),
-      body: GridView.builder(
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2, // Dos columnas
-          childAspectRatio: 0.6, // Relación de aspecto para la imagen
-        ),
-        itemCount: _filterProducts(selectedCategory).length,
-        itemBuilder: (context, index) {
-          final product = _filterProducts(selectedCategory)[index];
-          return GestureDetector(
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) =>
-                      ProductDetail(propietario: false, product: product),
-                ),
+      body: StreamBuilder<QuerySnapshot>(
+        stream: FirebaseFirestore.instance.collection('products').snapshots(),
+        builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+          if (snapshot.hasError) {
+            return const Text('Algo salió mal');
+          }
+
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          return ListView(
+            children: snapshot.data!.docs.map((DocumentSnapshot document) {
+              Map<String, dynamic> data = document.data()! as Map<String, dynamic>;
+              return ListTile(
+                title: Text(data['name']),
+                subtitle: Text(data['description']),
+                trailing: Text('\$${data['price']}'),
+                leading: Image.network(data['images'][0]), // Asegúrate de manejar correctamente las imágenes
               );
-            },
-            child: Card(
-              elevation: 4,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Expanded(
-                    child: ClipRRect(
-                      // Recortar la imagen con bordes redondeados
-                      borderRadius: BorderRadius.circular(14.0),
-                      child:
-                          Image.asset(product.images.first, fit: BoxFit.cover),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    product.name,
-                    style: const TextStyle(
-                        fontSize: 16, fontWeight: FontWeight.bold),
-                    textAlign: TextAlign.center,
-                  ),
-                  Text(
-                    '\$${product.price.toStringAsFixed(2)}',
-                    style: const TextStyle(fontSize: 14),
-                  ),
-                ],
-              ),
-            ),
+            }).toList(),
           );
         },
       ),

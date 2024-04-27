@@ -1,4 +1,6 @@
 import 'dart:io';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -15,22 +17,65 @@ class _SubirProductoState extends State<SubirProducto> {
   final _descriptionController = TextEditingController();
   final _priceController = TextEditingController();
   final _categoryController = TextEditingController();
-  List<File>? _imageFile;
+  List<File>? _selectedImages;
   final List<String> _categories = ['electronica', 'ropa', 'deporte', 'otros'];
   String? _selectedCategory;
 
   Future<void> _pickImages() async {
     final pickedImages = await ImagePicker().pickMultiImage();
     setState(() {
-      _imageFile = pickedImages.map((image) => File(image.path)).toList();
+      _selectedImages = pickedImages.map((image) => File(image.path)).toList();
     });
+  }
+
+  Future<String> uploadImage(File imageFile) async {
+    final storageRef = FirebaseStorage.instance.ref();
+    final imagesRef = storageRef.child("images/");
+    final filename = imageFile.path.split('/').last;
+    final imageRef = imagesRef.child(filename);
+    final uploadTask = imageRef.putFile(imageFile);
+
+    final snapshot = await uploadTask.whenComplete(() => null);
+    final downloadUrl = await snapshot.ref.getDownloadURL();
+    return downloadUrl;
   }
 
   Future<void> _uploadProduct() async {
     if (_formKey.currentState!.validate()) {
-      // Implement product upload logic here (API call, data storage, etc.)
-      // Handle success or error scenarios
-      // Show appropriate messages to the user
+      try {
+        // Upload images if any
+        List<String> imageUrls = [];
+        if (_selectedImages != null) { // Using a more descriptive name
+          for (final imageFile in _selectedImages!) {
+            final imageUrl = await uploadImage(imageFile);
+            imageUrls.add(imageUrl);
+          }
+        }
+
+        // Create product data
+        final productData = {
+          'name': _nameController.text,
+          'description': _descriptionController.text,
+          'price': double.parse(_priceController.text),
+          'category': _selectedCategory,
+          'images': imageUrls,
+        };
+
+        // Store product in Firestore
+        final productRef = FirebaseFirestore.instance.collection('products').doc();
+        await productRef.set(productData);
+
+        // Show success message and navigate back (or implement desired behavior)
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Producto subido exitosamente')),
+        );
+        Navigator.pop(context); // Assuming this navigates back
+      } catch (error) {
+        print('Error uploading product: $error');
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Error al subir el producto')),
+        );
+      }
     }
   }
 
@@ -134,9 +179,10 @@ class _SubirProductoState extends State<SubirProducto> {
                         height: 200.0,
                         child: ListView.builder(
                           scrollDirection: Axis.horizontal,
-                          itemCount: _imageFile?.length ?? 0, // Verifica si _imageFile no es nulo
+                          itemCount: _selectedImages?.length ??
+                              0, // Verifica si _imageFile no es nulo
                           itemBuilder: (BuildContext ctxt, int index) {
-                            final imageFile = _imageFile?[index];
+                            final imageFile = _selectedImages?[index];
                             if (imageFile != null) {
                               return Stack(
                                 alignment: Alignment.topRight,
@@ -148,10 +194,12 @@ class _SubirProductoState extends State<SubirProducto> {
                                     fit: BoxFit.cover,
                                   ),
                                   IconButton(
-                                    icon: const Icon(Icons.remove_circle, color: Colors.red),
+                                    icon: const Icon(Icons.remove_circle,
+                                        color: Colors.red),
                                     onPressed: () {
                                       setState(() {
-                                        _imageFile?.removeAt(index); // Elimina la imagen seleccionada
+                                        _selectedImages?.removeAt(
+                                            index); // Elimina la imagen seleccionada
                                       });
                                     },
                                   ),
