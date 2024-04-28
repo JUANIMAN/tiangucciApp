@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tiangucci/vistas/articulo.dart';
 import 'package:tiangucci/vistas/login.dart';
-import 'package:tiangucci/vistas/productos.dart';
 import 'package:tiangucci/vistas/usuario.dart';
 
 class MyHomePage extends StatefulWidget {
@@ -18,6 +17,12 @@ class _MyHomePageState extends State<MyHomePage> {
   final category = ["todos", "ropa", "deporte", "electronica", "otros"];
   String selectedCategory = 'todos';
   bool _isLoggedIn = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkLogin();
+  }
 
   Future<void> _checkLogin() async {
     final prefs = await _prefs;
@@ -41,20 +46,15 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
-  List<Product> _filterProducts(String selectedCategory) {
-    if (selectedCategory == 'todos') {
-      return productList; // Mostrar todos los productos
+  Stream<QuerySnapshot> _filterProducts(String category) {
+    if (category == 'todos') {
+      return FirebaseFirestore.instance.collection('products').snapshots();
     } else {
-      return productList
-          .where((product) => product.category.name == selectedCategory)
-          .toList(); // Filtrar por categoría seleccionada
+      return FirebaseFirestore.instance
+          .collection('products')
+          .where('category', isEqualTo: category)
+          .snapshots();
     }
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _checkLogin();
   }
 
   @override
@@ -99,7 +99,7 @@ class _MyHomePageState extends State<MyHomePage> {
         ],
       ),
       body: StreamBuilder<QuerySnapshot>(
-        stream: FirebaseFirestore.instance.collection('products').snapshots(),
+        stream: _filterProducts(selectedCategory),
         builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
           if (snapshot.hasError) {
             return const Text('Algo salió mal');
@@ -109,16 +109,55 @@ class _MyHomePageState extends State<MyHomePage> {
             return const Center(child: CircularProgressIndicator());
           }
 
-          return ListView(
-            children: snapshot.data!.docs.map((DocumentSnapshot document) {
-              Map<String, dynamic> data = document.data()! as Map<String, dynamic>;
-              return ListTile(
-                title: Text(data['name']),
-                subtitle: Text(data['description']),
-                trailing: Text('\$${data['price']}'),
-                leading: Image.network(data['images'][0]), // Asegúrate de manejar correctamente las imágenes
+          return GridView.builder(
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2, // Dos columnas
+              childAspectRatio: 0.6, // Relación de aspecto para la imagen
+            ),
+            itemCount: snapshot.data!.docs.length,
+            itemBuilder: (context, index) {
+              DocumentSnapshot document = snapshot.data!.docs[index];
+              Map<String, dynamic> data =
+                  document.data()! as Map<String, dynamic>;
+              return GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => ProductDetail(
+                          propietario: false, productId: document.id),
+                    ),
+                  );
+                },
+                child: Card(
+                  elevation: 4,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Expanded(
+                        child: ClipRRect(
+                          // Recortar la imagen con bordes redondeados
+                          borderRadius: BorderRadius.circular(14.0),
+                          child: Image.network(data['images'][0], width: 200, height: 200,
+                              fit: BoxFit.cover),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        data['name'],
+                        style: const TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.bold),
+                        textAlign: TextAlign.center,
+                      ),
+                      Text(
+                        '\$${data['price'].toStringAsFixed(2)}',
+                        style: const TextStyle(fontSize: 14),
+                      ),
+                    ],
+                  ),
+                ),
               );
-            }).toList(),
+            },
           );
         },
       ),
