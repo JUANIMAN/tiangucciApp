@@ -79,9 +79,9 @@ class PerfilUsuario extends StatelessWidget {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => ProductDetail(
+                        builder: (context) => const ProductDetail(
                           propietario: true,
-                          product: producto,
+                          productId: '',
                         ),
                       ),
                     );
