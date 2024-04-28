@@ -20,6 +20,7 @@ class _SubirProductoState extends State<SubirProducto> {
   List<File>? _selectedImages;
   final List<String> _categories = ['electronica', 'ropa', 'deporte', 'otros'];
   String? _selectedCategory;
+  late bool _isLoading = false;
 
   Future<void> _pickImages() async {
     final pickedImages = await ImagePicker().pickMultiImage();
@@ -42,10 +43,14 @@ class _SubirProductoState extends State<SubirProducto> {
 
   Future<void> _uploadProduct() async {
     if (_formKey.currentState!.validate()) {
+      setState(() {
+        _isLoading = true;
+      });
       try {
         // Upload images if any
         List<String> imageUrls = [];
-        if (_selectedImages != null) { // Using a more descriptive name
+        if (_selectedImages != null) {
+          // Using a more descriptive name
           for (final imageFile in _selectedImages!) {
             final imageUrl = await uploadImage(imageFile);
             imageUrls.add(imageUrl);
@@ -62,20 +67,25 @@ class _SubirProductoState extends State<SubirProducto> {
         };
 
         // Store product in Firestore
-        final productRef = FirebaseFirestore.instance.collection('products').doc();
+        final productRef =
+            FirebaseFirestore.instance.collection('products').doc();
         await productRef.set(productData);
+
+        setState(() {
+          _isLoading = false;
+        });
 
         // Show success message and navigate back (or implement desired behavior)
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Producto subido exitosamente')),
         );
-        Navigator.pop(context); // Assuming this navigates back
       } catch (error) {
         print('Error uploading product: $error');
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Error al subir el producto')),
         );
       }
+      Navigator.pop(context);
     }
   }
 
@@ -172,53 +182,49 @@ class _SubirProductoState extends State<SubirProducto> {
                   child: const Text('Seleccionar imagenes'),
                 ),
 
-                Row(
-                  children: <Widget>[
-                    Expanded(
-                      child: SizedBox(
-                        height: 200.0,
-                        child: ListView.builder(
-                          scrollDirection: Axis.horizontal,
-                          itemCount: _selectedImages?.length ??
-                              0, // Verifica si _imageFile no es nulo
-                          itemBuilder: (BuildContext ctxt, int index) {
-                            final imageFile = _selectedImages?[index];
-                            if (imageFile != null) {
-                              return Stack(
-                                alignment: Alignment.topRight,
-                                children: <Widget>[
-                                  Image.file(
-                                    imageFile,
-                                    width: 200.0,
-                                    height: 200.0,
-                                    fit: BoxFit.cover,
-                                  ),
-                                  IconButton(
-                                    icon: const Icon(Icons.remove_circle,
-                                        color: Colors.red),
-                                    onPressed: () {
-                                      setState(() {
-                                        _selectedImages?.removeAt(
-                                            index); // Elimina la imagen seleccionada
-                                      });
-                                    },
-                                  ),
-                                ],
-                              );
-                            } else {
-                              return const Text('No hay imagen seleccionada');
-                            }
-                          },
-                        ),
-                      ),
-                    ),
-                  ],
+                SizedBox(
+                  height: 200.0,
+                  child: ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: _selectedImages?.length ?? 0,
+                    itemBuilder: (BuildContext context, int index) {
+                      final imageFile = _selectedImages?[index];
+                      if (imageFile != null) {
+                        return Stack(
+                          alignment: Alignment.topRight,
+                          children: <Widget>[
+                            Image.file(
+                              imageFile,
+                              width: 200.0,
+                              height: 200.0,
+                              fit: BoxFit.cover,
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.remove_circle,
+                                  color: Colors.red),
+                              onPressed: () {
+                                setState(() {
+                                  _selectedImages?.removeAt(index); // Elimina la imagen seleccionada
+                                });
+                              },
+                            ),
+                          ],
+                        );
+                      } else {
+                        return const Text('No hay imagen seleccionada');
+                      }
+                    },
+                  ),
                 ),
 
                 // Upload Button
-                ElevatedButton(
-                  onPressed: _uploadProduct,
-                  child: const Text('Subir Producto'),
+                SizedBox(
+                  width: 200,
+                  child: ElevatedButton(
+                      onPressed: _isLoading == false ? _uploadProduct : null,
+                      child: _isLoading == true
+                          ? const CircularProgressIndicator()
+                          : const Text('Subir Producto')),
                 ),
               ],
             ),
