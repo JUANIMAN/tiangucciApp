@@ -1,11 +1,8 @@
-import 'dart:ui';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:tiangucci/vistas/editar_articulo.dart';
-import 'package:tiangucci/vistas/productos.dart';
 
 class ProductDetail extends StatefulWidget {
   final String productId;
@@ -65,13 +62,13 @@ class _ProductDetailState extends State<ProductDetail> {
                           showDialog(
                             context: context,
                             builder: (BuildContext context) {
-                              return PhotoView(
-                                  imageProvider: NetworkImage(image),
-                                  initialScale:
-                                      PhotoViewComputedScale.contained * 1,
-                                  minScale:
-                                      PhotoViewComputedScale.contained * 1,
-                                  maxScale: PhotoViewComputedScale.covered);
+                              return Hero(
+                                  tag: 'imageHero',
+                                  child: PhotoView(
+                                      imageProvider: NetworkImage(image),
+                                      initialScale: PhotoViewComputedScale.contained * 1,
+                                      minScale: PhotoViewComputedScale.contained * 1,
+                                      maxScale: PhotoViewComputedScale.covered));
                             },
                           );
                         },
@@ -97,11 +94,15 @@ class _ProductDetailState extends State<ProductDetail> {
                   showDialog(
                     context: context,
                     builder: (BuildContext context) {
-                      return PhotoView(
+                      return Hero(
+                        tag: 'imageHero', // Same tag as the first Hero
+                        child: PhotoView(
                           imageProvider: NetworkImage(images.first),
                           initialScale: PhotoViewComputedScale.contained * 1,
                           minScale: PhotoViewComputedScale.contained * 1,
-                          maxScale: PhotoViewComputedScale.covered);
+                          maxScale: PhotoViewComputedScale.covered,
+                        ),
+                      );
                     },
                   );
                 },
@@ -130,7 +131,8 @@ class _ProductDetailState extends State<ProductDetail> {
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
               child: Text(
                 product['name'],
-                style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                style:
+                    const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
             ),
             Padding(
