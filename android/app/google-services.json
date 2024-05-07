@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "212948449516",
+    "project_id": "auth-f459a",
+    "storage_bucket": "auth-f459a.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:212948449516:android:dcbb23d0cf31aa0c2f0dc9",
+        "android_client_info": {
+          "package_name": "fes.aragon.ico.tiangucci"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC5nojTi7_GgQFFD-dA9xOhPPPfLY7Sam8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
