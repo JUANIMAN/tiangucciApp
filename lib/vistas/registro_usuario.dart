@@ -1,5 +1,11 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:tiangucci/vistas/firebase_Auth_Implementation/firebase_auth_services.dart';
+import 'package:tiangucci/vistas/home.dart';
+import 'package:tiangucci/vistas/login.dart';
+import 'package:tiangucci/vistas/widgets/form_container_widget.dart';
 
 class RegisterPage extends StatefulWidget {
   final bool editar;
@@ -10,111 +16,128 @@ class RegisterPage extends StatefulWidget {
 }
 
 class _RegisterPageState extends State<RegisterPage> {
-  late final TextEditingController _emailController;
-  late final TextEditingController _passwordController;
-  late final TextEditingController _nameController;
-  final _formKey = GlobalKey<FormState>();
+
+  final FirebaseAuthService _auth = FirebaseAuthService();
+
+  TextEditingController _usernameController = TextEditingController();
+  TextEditingController _emailController = TextEditingController();
+  TextEditingController _passwordController = TextEditingController();
 
   @override
-  void initState() {
-    super.initState();
-    // Inicializar los controladores con valores predeterminados o vacíos.
-    _nameController = TextEditingController(text: widget.editar ? "JP" : "");
-    _emailController =
-        TextEditingController(text: widget.editar ? "jp@aragon.com" : "");
-    _passwordController =
-        TextEditingController(text: widget.editar ? "contraseña" : "");
+  void dispose() {
+    _usernameController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
-
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        automaticallyImplyLeading: false,
+        title: Text("SignUp"),
       ),
-      body: SingleChildScrollView(
+      body: Center(
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              children: [
-                // Logo
-                const FlutterLogo(size: 128.0),
+          padding: const EdgeInsets.symmetric(horizontal: 15),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                "Sign Up",
+                style: TextStyle(fontSize: 27, fontWeight: FontWeight.bold),
+              ),
+              SizedBox(
+                height: 30,
+              ),
+              FormContainerWidget(
+                controller: _usernameController,
+                hintText: "Username",
+                isPasswordField: false,
+              ),
+              SizedBox(
+                height: 10,
+              ),
+              FormContainerWidget(
+                controller: _emailController,
+                hintText: "Email",
+                isPasswordField: false,
+              ),
+              SizedBox(
+                height: 10,
+              ),
+              FormContainerWidget(
+                controller: _passwordController,
+                hintText: "Password",
+                isPasswordField: true,
+              ),
+              SizedBox(
+                height: 30,
+              ),
+              GestureDetector(
+                onTap:  (){
+                  _signUp();
 
-                // Título
-                const SizedBox(height: 16.0),
-                Text(
-                  widget.editar ? 'Editar perfil' : 'Registrarse',
-                  style: Theme.of(context).textTheme.headlineMedium,
-                ),
-
-                // Nombre
-                const SizedBox(height: 16.0),
-                TextFormField(
-                  controller: _nameController,
-                  decoration: const InputDecoration(
-                    labelText: 'Nombre',
-                    prefixIcon: Icon(Icons.person),
+                },
+                child: Container(
+                  width: double.infinity,
+                  height: 45,
+                  decoration: BoxDecoration(
+                    color: Colors.blue,
+                    borderRadius: BorderRadius.circular(10),
                   ),
-                  validator: (value) {
-                    if (value!.isEmpty) {
-                      return 'El nombre es obligatorio';
-                    }
-                    return null;
-                  },
+                  child: Center(
+                      child: Text(
+                    "Sign Up",
+                    style: TextStyle(
+                        color: Colors.white, fontWeight: FontWeight.bold),
+                  )),
                 ),
-
-                // Correo electrónico
-                const SizedBox(height: 16.0),
-                TextFormField(
-                  controller: _emailController,
-                  decoration: const InputDecoration(
-                    labelText: 'Correo electrónico',
-                    prefixIcon: Icon(Icons.email),
+              ),
+              SizedBox(
+                height: 20,
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text("Already have an account?"),
+                  SizedBox(
+                    width: 5,
                   ),
-                  validator: (value) {
-                    if (value!.isEmpty) {
-                      return 'El correo electrónico es obligatorio';
-                    }
-                    return null;
-                  },
-                ),
-
-                // Contraseña
-                const SizedBox(height: 16.0),
-                TextFormField(
-                  controller: _passwordController,
-                  decoration: const InputDecoration(
-                    labelText: 'Contraseña',
-                    prefixIcon: Icon(Icons.lock),
-                  ),
-                  obscureText: true,
-                  validator: (value) {
-                    if (value!.isEmpty) {
-                      return 'La contraseña es obligatoria';
-                    }
-                    return null;
-                  },
-                ),
-
-                // Botón de registro
-                const SizedBox(height: 16.0),
-                ElevatedButton(
-                  onPressed: () {
-                    if (_formKey.currentState!.validate()) {
-                      // Registrarse
-                    }
-                  },
-                  child: const Text('Registrarse'),
-                ),
-              ],
-            ),
+                  GestureDetector(
+                      onTap: () {
+                        Navigator.pushAndRemoveUntil(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => LoginPage()),
+                            (route) => false);
+                      },
+                      child: Text(
+                        "Login",
+                        style: TextStyle(
+                            color: Colors.blue, fontWeight: FontWeight.bold),
+                      ))
+                ],
+              )
+            ],
           ),
         ),
       ),
     );
+  }
+  void _signUp() async {
+    String username = _usernameController.text;
+    String email=_emailController.text;
+    String password = _passwordController.text;
+
+    User? user = await _auth.signUpWithEmailAndPassword(email, password);
+
+    if(user != null){
+      print("user is successfully created");
+      Navigator.push(context, MaterialPageRoute(builder:(context) => MyHomePage()),);
+    }else{
+      print("Some error happend");
+    }
   }
 }
