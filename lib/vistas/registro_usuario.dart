@@ -8,8 +8,8 @@ import 'package:tiangucci/vistas/login.dart';
 import 'package:tiangucci/vistas/widgets/form_container_widget.dart';
 
 class RegisterPage extends StatefulWidget {
-  final bool editar;
-  const RegisterPage({super.key, required this.editar});
+  final bool? editar;
+  const RegisterPage({super.key, this.editar});
 
   @override
   State<RegisterPage> createState() => _RegisterPageState();
@@ -19,6 +19,7 @@ class _RegisterPageState extends State<RegisterPage> {
 
   final FirebaseAuthService _auth = FirebaseAuthService();
 
+  bool _isSigningUp = false;
   TextEditingController _usernameController = TextEditingController();
   TextEditingController _emailController = TextEditingController();
   TextEditingController _passwordController = TextEditingController();
@@ -88,7 +89,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Center(
-                      child: Text(
+                      child: _isSigningUp ? CircularProgressIndicator(color: Colors.white,) : Text(
                     "Sign Up",
                     style: TextStyle(
                         color: Colors.white, fontWeight: FontWeight.bold),
@@ -127,11 +128,20 @@ class _RegisterPageState extends State<RegisterPage> {
     );
   }
   void _signUp() async {
+    setState(() {
+      _isSigningUp=true;
+    });
+
+
     String username = _usernameController.text;
     String email=_emailController.text;
     String password = _passwordController.text;
 
     User? user = await _auth.signUpWithEmailAndPassword(email, password);
+
+    setState(() {
+      _isSigningUp=false;
+    });
 
     if(user != null){
       print("user is successfully created");

@@ -7,8 +7,11 @@ class FirebaseAuthService{
     try{
       UserCredential credential =await _auth.createUserWithEmailAndPassword(email: email, password: password);
       return credential.user;
-    } catch (e){
-      print("Some error occurred");
+    }on FirebaseAuthException catch (e){
+
+      //AQUI DEBE IR EL FLUTTERTOAST
+    
+    
     }
     return null;
   }

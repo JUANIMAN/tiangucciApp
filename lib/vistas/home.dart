@@ -1,3 +1,5 @@
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tiangucci/vistas/articulo.dart';
@@ -93,6 +95,21 @@ class _MyHomePageState extends State<MyHomePage> {
             iconSize: 35,
             onPressed: () {
               _handleProfile();
+            },
+          ),
+          IconButton(
+            icon: const Icon(
+              Icons.outbond,
+            ),
+            iconSize: 35,
+            onPressed: () {
+              FirebaseAuth.instance.signOut();
+               Navigator.of(context).pushAndRemoveUntil(
+                        MaterialPageRoute(
+                            builder: (context) => const LoginPage()),
+                        (Route<dynamic> route) => false,
+                      );
+              print("Salida");
             },
           ),
         ],
