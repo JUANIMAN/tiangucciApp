@@ -1,4 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:tiangucci/global/common/toast.dart';
 class FirebaseAuthService{
   FirebaseAuth _auth = FirebaseAuth.instance;
 
@@ -10,10 +12,15 @@ class FirebaseAuthService{
     }on FirebaseAuthException catch (e){
 
       //AQUI DEBE IR EL FLUTTERTOAST
-    
-    
+     if(e.code=='email-already-in-use'){
+      showToast(message: 'The email adress is already in use');
+     }else{
+      showToast(message: 'An error occurred: ${e.code}');
+     }
     }
     return null;
+
+
   }
 
   Future<User?> signInWithEmailAndPassword(String email, String password) async{
@@ -21,8 +28,12 @@ class FirebaseAuthService{
     try{
       UserCredential credential =await _auth.signInWithEmailAndPassword(email: email, password: password);
       return credential.user;
-    } catch (e){
-      print("Some error occurred");
+    } on FirebaseAuthException catch (e){
+      if(e.code=='user-not-found' || e.code=='wrong-password'){
+        showToast(message: 'invalid email or password');
+      }else{
+        showToast(message: 'An error occurred: ${e.code}');
+      }
     }
     return null;
     }

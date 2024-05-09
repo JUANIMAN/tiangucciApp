@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:tiangucci/global/common/toast.dart';
 import 'package:tiangucci/vistas/articulo.dart';
 import 'package:tiangucci/vistas/login.dart';
 import 'package:tiangucci/vistas/productos.dart';
@@ -107,8 +108,9 @@ class _MyHomePageState extends State<MyHomePage> {
                Navigator.of(context).pushAndRemoveUntil(
                         MaterialPageRoute(
                             builder: (context) => const LoginPage()),
-                        (Route<dynamic> route) => false,
+                        (Route<dynamic> route) => false
                       );
+                      showToast(message: "Successfully signed out");
               print("Salida");
             },
           ),

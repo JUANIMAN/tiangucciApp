@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:tiangucci/global/common/toast.dart';
 import 'package:tiangucci/vistas/firebase_Auth_Implementation/firebase_auth_services.dart';
 import 'package:tiangucci/vistas/home.dart';
 import 'package:tiangucci/vistas/login.dart';
@@ -79,6 +80,7 @@ class _RegisterPageState extends State<RegisterPage> {
               GestureDetector(
                 onTap:  (){
                   _signUp();
+                  showToast(message: "user is successfully created");
 
                 },
                 child: Container(
@@ -144,10 +146,10 @@ class _RegisterPageState extends State<RegisterPage> {
     });
 
     if(user != null){
-      print("user is successfully created");
+      showToast(message: "user is successfully created");
       Navigator.push(context, MaterialPageRoute(builder:(context) => MyHomePage()),);
     }else{
-      print("Some error happend");
+      showToast(message: "Some error happend");
     }
   }
 }
