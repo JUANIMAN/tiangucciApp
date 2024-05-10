@@ -14,6 +14,7 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
+  List<DocumentSnapshot> _buffer = [];
   final category = ["todos", "ropa", "deporte", "electronica", "otros"];
   String selectedCategory = 'todos';
   bool _isLoggedIn = false;
@@ -21,6 +22,7 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     super.initState();
+    _filterProducts(selectedCategory);
     _checkLogin();
   }
 
@@ -46,15 +48,22 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
-  Stream<QuerySnapshot> _filterProducts(String category) {
+  void _filterProducts(String category) {
+    Stream<QuerySnapshot> stream;
     if (category == 'todos') {
-      return FirebaseFirestore.instance.collection('products').snapshots();
+      stream = FirebaseFirestore.instance.collection('products').snapshots();
     } else {
-      return FirebaseFirestore.instance
+      stream = FirebaseFirestore.instance
           .collection('products')
           .where('category', isEqualTo: category)
           .snapshots();
     }
+
+    stream.listen((QuerySnapshot snapshot) {
+      setState(() {
+        _buffer = snapshot.docs;
+      });
+    });
   }
 
   @override
@@ -74,6 +83,7 @@ class _MyHomePageState extends State<MyHomePage> {
               onChanged: (String? newValue) {
                 setState(() {
                   selectedCategory = newValue!;
+                  _filterProducts(selectedCategory);
                 });
               },
               items: category
@@ -98,66 +108,52 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
         ],
       ),
-      body: StreamBuilder<QuerySnapshot>(
-        stream: _filterProducts(selectedCategory),
-        builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-          if (snapshot.hasError) {
-            return const Text('Algo salió mal');
-          }
-
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-
-          return GridView.builder(
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2, // Dos columnas
-              childAspectRatio: 0.6, // Relación de aspecto para la imagen
-            ),
-            itemCount: snapshot.data!.docs.length,
-            itemBuilder: (context, index) {
-              DocumentSnapshot document = snapshot.data!.docs[index];
-              Map<String, dynamic> data =
-                  document.data()! as Map<String, dynamic>;
-              return GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => ProductDetail(
-                          propietario: false, productId: document.id),
-                    ),
-                  );
-                },
-                child: Card(
-                  elevation: 4,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Expanded(
-                        child: ClipRRect(
-                          // Recortar la imagen con bordes redondeados
-                          borderRadius: BorderRadius.circular(14.0),
-                          child: Image.network(data['images'][0], width: 200, height: 200,
-                              fit: BoxFit.cover),
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        data['name'],
-                        style: const TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.bold),
-                        textAlign: TextAlign.center,
-                      ),
-                      Text(
-                        '\$${data['price'].toStringAsFixed(2)}',
-                        style: const TextStyle(fontSize: 14),
-                      ),
-                    ],
-                  ),
+      body: GridView.builder(
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2, // Dos columnas
+          childAspectRatio: 0.6, // Relación de aspecto para la imagen
+        ),
+        itemCount: _buffer.length, // Usa el buffer aquí
+        itemBuilder: (context, index) {
+          DocumentSnapshot document = _buffer[index];
+          Map<String, dynamic> data = document.data()! as Map<String, dynamic>;
+          return GestureDetector(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) =>
+                      ProductDetail(propietario: false, productId: document.id),
                 ),
               );
             },
+            child: Card(
+              elevation: 4,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Expanded(
+                    child: ClipRRect(
+                      // Recortar la imagen con bordes redondeados
+                      borderRadius: BorderRadius.circular(14.0),
+                      child: Image.network(data['images'][0],
+                          width: 200, height: 200, fit: BoxFit.cover),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    data['name'],
+                    style: const TextStyle(
+                        fontSize: 16, fontWeight: FontWeight.bold),
+                    textAlign: TextAlign.center,
+                  ),
+                  Text(
+                    '\$${data['price'].toStringAsFixed(2)}',
+                    style: const TextStyle(fontSize: 14),
+                  ),
+                ],
+              ),
+            ),
           );
         },
       ),
