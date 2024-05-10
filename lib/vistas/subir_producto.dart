@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -16,7 +17,6 @@ class _SubirProductoState extends State<SubirProducto> {
   final _nameController = TextEditingController();
   final _descriptionController = TextEditingController();
   final _priceController = TextEditingController();
-  final _categoryController = TextEditingController();
   List<File>? _selectedImages;
   final List<String> _categories = ['electronica', 'ropa', 'deporte', 'otros'];
   String? _selectedCategory;
@@ -47,35 +47,38 @@ class _SubirProductoState extends State<SubirProducto> {
         _isLoading = true;
       });
       try {
+        // Obtén el UID del usuario actual
+        User? currentUser = FirebaseAuth.instance.currentUser;
+        final String userId = currentUser?.uid ?? 'anon';
+
         // Upload images if any
         List<String> imageUrls = [];
         if (_selectedImages != null) {
-          // Using a more descriptive name
           for (final imageFile in _selectedImages!) {
             final imageUrl = await uploadImage(imageFile);
             imageUrls.add(imageUrl);
           }
         }
 
-        // Create product data
+        // Create product data with user ID
         final productData = {
           'name': _nameController.text,
           'description': _descriptionController.text,
           'price': double.parse(_priceController.text),
           'category': _selectedCategory,
           'images': imageUrls,
+          'userId': userId,
         };
 
         // Store product in Firestore
-        final productRef =
-            FirebaseFirestore.instance.collection('products').doc();
+        final productRef = FirebaseFirestore.instance.collection('products').doc();
         await productRef.set(productData);
 
         setState(() {
           _isLoading = false;
         });
 
-        // Show success message and navigate back (or implement desired behavior)
+        // Show success message and navigate back
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Producto subido exitosamente')),
         );
@@ -88,6 +91,7 @@ class _SubirProductoState extends State<SubirProducto> {
       Navigator.pop(context);
     }
   }
+
 
   @override
   Widget build(BuildContext context) {

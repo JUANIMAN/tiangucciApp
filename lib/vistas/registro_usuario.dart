@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class RegisterPage extends StatefulWidget {
   final bool editar;
@@ -14,20 +16,53 @@ class _RegisterPageState extends State<RegisterPage> {
   late final TextEditingController _nameController;
   final _formKey = GlobalKey<FormState>();
 
+  // Crea la instancia de FirebaseAuth y Firestore
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
   @override
   void initState() {
     super.initState();
-    // Inicializar los controladores con valores predeterminados o vacíos.
-    _nameController = TextEditingController(text: widget.editar ? "JP" : "");
-    _emailController =
-        TextEditingController(text: widget.editar ? "jp@aragon.com" : "");
-    _passwordController =
-        TextEditingController(text: widget.editar ? "contraseña" : "");
+    _nameController = TextEditingController();
+    _emailController = TextEditingController();
+    _passwordController = TextEditingController();
+  }
+
+  Future<void> registerUser(
+      String email, String password, String username) async {
+    try {
+      UserCredential userCredential =
+          await _auth.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+      await _firestore.collection('users').doc(userCredential.user!.uid).set({
+        'username': username,
+        'email': email,
+        'uid': userCredential.user!.uid,
+      });
+
+      // Usuario registrado con éxito
+      if (mounted) {
+        Navigator.pop(context);
+      }
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'weak-password') {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('La contraseña es demasiado débil')),
+        );
+      } else if (e.code == 'email-already-in-use') {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('El correo electrónico ya está en uso')),
+        );
+      }
+    } catch (e) {
+      // Otros errores
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
@@ -101,9 +136,10 @@ class _RegisterPageState extends State<RegisterPage> {
                 // Botón de registro
                 const SizedBox(height: 16.0),
                 ElevatedButton(
-                  onPressed: () {
+                  onPressed: () async {
                     if (_formKey.currentState!.validate()) {
-                      // Registrarse
+                      registerUser(_emailController.text,
+                          _passwordController.text, _nameController.text);
                     }
                   },
                   child: const Text('Registrarse'),

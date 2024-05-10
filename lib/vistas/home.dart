@@ -1,8 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:tiangucci/vistas/articulo.dart';
+import 'package:tiangucci/vistas/producto.dart';
 import 'package:tiangucci/vistas/login.dart';
+import 'package:tiangucci/vistas/productos.dart';
 import 'package:tiangucci/vistas/usuario.dart';
 
 class MyHomePage extends StatefulWidget {
@@ -14,7 +15,7 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
-  List<DocumentSnapshot> _buffer = [];
+  late Future<List<Product>> futureProductos;
   final category = ["todos", "ropa", "deporte", "electronica", "otros"];
   String selectedCategory = 'todos';
   bool _isLoggedIn = false;
@@ -22,7 +23,7 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     super.initState();
-    _filterProducts(selectedCategory);
+    futureProductos = obtenerProductos(selectedCategory);
     _checkLogin();
   }
 
@@ -48,22 +49,19 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
-  void _filterProducts(String category) {
-    Stream<QuerySnapshot> stream;
+  Future<List<Product>> obtenerProductos(String category) async {
+    QuerySnapshot querySnapshot;
     if (category == 'todos') {
-      stream = FirebaseFirestore.instance.collection('products').snapshots();
+      querySnapshot =
+          await FirebaseFirestore.instance.collection('products').get();
     } else {
-      stream = FirebaseFirestore.instance
+      querySnapshot = await FirebaseFirestore.instance
           .collection('products')
           .where('category', isEqualTo: category)
-          .snapshots();
+          .get();
     }
 
-    stream.listen((QuerySnapshot snapshot) {
-      setState(() {
-        _buffer = snapshot.docs;
-      });
-    });
+    return querySnapshot.docs.map((doc) => Product.fromFirestore(doc)).toList();
   }
 
   @override
@@ -83,7 +81,7 @@ class _MyHomePageState extends State<MyHomePage> {
               onChanged: (String? newValue) {
                 setState(() {
                   selectedCategory = newValue!;
-                  _filterProducts(selectedCategory);
+                  futureProductos = obtenerProductos(selectedCategory);
                 });
               },
               items: category
@@ -108,53 +106,66 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
         ],
       ),
-      body: GridView.builder(
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2, // Dos columnas
-          childAspectRatio: 0.6, // Relación de aspecto para la imagen
-        ),
-        itemCount: _buffer.length, // Usa el buffer aquí
-        itemBuilder: (context, index) {
-          DocumentSnapshot document = _buffer[index];
-          Map<String, dynamic> data = document.data()! as Map<String, dynamic>;
-          return GestureDetector(
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) =>
-                      ProductDetail(propietario: false, productId: document.id),
-                ),
-              );
-            },
-            child: Card(
-              elevation: 4,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Expanded(
-                    child: ClipRRect(
-                      // Recortar la imagen con bordes redondeados
-                      borderRadius: BorderRadius.circular(14.0),
-                      child: Image.network(data['images'][0],
-                          width: 200, height: 200, fit: BoxFit.cover),
+      body: FutureBuilder<List<Product>>(
+        future: futureProductos,
+        builder: (BuildContext context, AsyncSnapshot<List<Product>> snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError) {
+            return const Center(child: Text('Error al cargar los productos'));
+          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            return const Center(child: Text('No hay productos disponibles'));
+          } else {
+            List<Product> products = snapshot.data!;
+            return GridView.builder(
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2, // Dos columnas
+                childAspectRatio: 0.6, // Relación de aspecto para la imagen
+              ),
+              itemCount: products.length,
+              itemBuilder: (context, index) {
+                Product product = products[index];
+                return GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            ProductDetail(propietario: false, product: product),
+                      ),
+                    );
+                  },
+                  child: Card(
+                    elevation: 4,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Expanded(
+                          child: ClipRRect(
+                            // Recortar la imagen con bordes redondeados
+                            borderRadius: BorderRadius.circular(14.0),
+                            child: Image.network(product.images.first,
+                                width: 200, height: 200, fit: BoxFit.cover),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          product.name,
+                          style: const TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.bold),
+                          textAlign: TextAlign.center,
+                        ),
+                        Text(
+                          '\$${product.price.toStringAsFixed(2)}',
+                          style: const TextStyle(fontSize: 14),
+                        ),
+                      ],
                     ),
                   ),
-                  const SizedBox(height: 8),
-                  Text(
-                    data['name'],
-                    style: const TextStyle(
-                        fontSize: 16, fontWeight: FontWeight.bold),
-                    textAlign: TextAlign.center,
-                  ),
-                  Text(
-                    '\$${data['price'].toStringAsFixed(2)}',
-                    style: const TextStyle(fontSize: 14),
-                  ),
-                ],
-              ),
-            ),
-          );
+                );
+              },
+            );
+          }
         },
       ),
     );
