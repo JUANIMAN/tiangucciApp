@@ -26,23 +26,53 @@ class _RegisterPageState extends State<RegisterPage> {
     _nameController = TextEditingController();
     _emailController = TextEditingController();
     _passwordController = TextEditingController();
+
+    if (widget.editar) {
+      getUserData();
+    }
   }
 
-  Future<void> registerUser(
+  Future<void> getUserData() async {
+    User? usuarioActual = FirebaseAuth.instance.currentUser;
+    String userId = usuarioActual?.uid ?? '';
+
+    DocumentSnapshot userDoc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(userId)
+        .get();
+
+    Map<String, dynamic> data = userDoc.data() as Map<String, dynamic>;
+    _nameController.text = data['username'];
+    _emailController.text = data['email'];
+  }
+
+
+  Future<void> registerOrUpdateUser(
       String email, String password, String username) async {
     try {
-      UserCredential userCredential =
-          await _auth.createUserWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
-      await _firestore.collection('users').doc(userCredential.user!.uid).set({
-        'username': username,
-        'email': email,
-        'uid': userCredential.user!.uid,
-      });
+      if (widget.editar) {
+        // Actualiza los datos del usuario
+        User? usuarioActual = FirebaseAuth.instance.currentUser;
+        await usuarioActual?.updatePassword(password);
+        await _firestore.collection('users').doc(usuarioActual?.uid).update({
+          'username': username,
+          'email': email,
+        });
+      } else {
+        // Registra un nuevo usuario
+        UserCredential userCredential =
+        await _auth.createUserWithEmailAndPassword(
+          email: email,
+          password: password,
+        );
+        await _firestore.collection('users').doc(userCredential.user!.uid).set({
+          'username': username,
+          'email': email,
+          'uid': userCredential.user!.uid,
+        });
+      }
 
-      // Usuario registrado con éxito
+      // Usuario registrado o actualizado con éxito
       if (mounted) {
         Navigator.pop(context);
       }
@@ -138,11 +168,11 @@ class _RegisterPageState extends State<RegisterPage> {
                 ElevatedButton(
                   onPressed: () async {
                     if (_formKey.currentState!.validate()) {
-                      registerUser(_emailController.text,
+                      registerOrUpdateUser(_emailController.text,
                           _passwordController.text, _nameController.text);
                     }
                   },
-                  child: const Text('Registrarse'),
+                  child: Text(widget.editar ? 'Subir Cambios' : 'Registrarse')
                 ),
               ],
             ),

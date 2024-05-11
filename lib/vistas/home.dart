@@ -15,15 +15,13 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
-  late Future<List<Product>> futureProductos;
-  final category = ["todos", "ropa", "deporte", "electronica", "otros"];
-  String selectedCategory = 'todos';
+  final category = ['Todos', 'Electronica', 'Ropa', 'Deporte', 'Alimentos', 'Otros'];
+  String selectedCategory = 'Todos';
   bool _isLoggedIn = false;
 
   @override
   void initState() {
     super.initState();
-    futureProductos = obtenerProductos(selectedCategory);
     _checkLogin();
   }
 
@@ -49,19 +47,20 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
-  Future<List<Product>> obtenerProductos(String category) async {
-    QuerySnapshot querySnapshot;
-    if (category == 'todos') {
-      querySnapshot =
-          await FirebaseFirestore.instance.collection('products').get();
+  Stream<List<Product>> obtenerProductos(String category) {
+    Query query;
+    if (category == 'Todos') {
+      query = FirebaseFirestore.instance.collection('products');
     } else {
-      querySnapshot = await FirebaseFirestore.instance
+      query = FirebaseFirestore.instance
           .collection('products')
-          .where('category', isEqualTo: category)
-          .get();
+          .where('category', isEqualTo: category);
     }
 
-    return querySnapshot.docs.map((doc) => Product.fromFirestore(doc)).toList();
+    // Usa snapshots() para obtener un Stream<QuerySnapshot>
+    return query.snapshots().map((querySnapshot) => querySnapshot.docs
+        .map((doc) => Product.fromFirestore(doc))
+        .toList()); // Mapea cada QuerySnapshot a una lista de productos
   }
 
   @override
@@ -81,7 +80,7 @@ class _MyHomePageState extends State<MyHomePage> {
               onChanged: (String? newValue) {
                 setState(() {
                   selectedCategory = newValue!;
-                  futureProductos = obtenerProductos(selectedCategory);
+                  obtenerProductos(selectedCategory);
                 });
               },
               items: category
@@ -106,8 +105,8 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
         ],
       ),
-      body: FutureBuilder<List<Product>>(
-        future: futureProductos,
+      body: StreamBuilder<List<Product>>(
+        stream: obtenerProductos(selectedCategory), // Pasa el stream a StreamBuilder
         builder: (BuildContext context, AsyncSnapshot<List<Product>> snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -120,7 +119,7 @@ class _MyHomePageState extends State<MyHomePage> {
             return GridView.builder(
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2, // Dos columnas
-                childAspectRatio: 0.6, // Relación de aspecto para la imagen
+                childAspectRatio: 0.7, // Relación de aspecto para la imagen
               ),
               itemCount: products.length,
               itemBuilder: (context, index) {
@@ -136,7 +135,6 @@ class _MyHomePageState extends State<MyHomePage> {
                     );
                   },
                   child: Card(
-                    elevation: 4,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
@@ -145,7 +143,7 @@ class _MyHomePageState extends State<MyHomePage> {
                             // Recortar la imagen con bordes redondeados
                             borderRadius: BorderRadius.circular(14.0),
                             child: Image.network(product.images.first,
-                                width: 200, height: 200, fit: BoxFit.cover),
+                                height: double.infinity, width: double.infinity, fit: BoxFit.cover),
                           ),
                         ),
                         const SizedBox(height: 8),

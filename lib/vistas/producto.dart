@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:photo_view/photo_view.dart';
@@ -16,6 +18,29 @@ class ProductDetail extends StatefulWidget {
 
 class _ProductDetailState extends State<ProductDetail> {
   int _currentIndex = 0;
+
+  void deleteProduct(String productId) async {
+    CollectionReference products = FirebaseFirestore.instance.collection('products');
+
+    try {
+      await products.doc(productId).delete();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Producto eliminado exitosamente')),
+      );
+      Navigator.pop(context);
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No se pudo eliminar el producto')),
+      );
+    }
+  }
+
+  Future<void> deleteImages(List<String> imageUrls) async {
+    for (var imageUrl in imageUrls) {
+      var ref = FirebaseStorage.instance.refFromURL(imageUrl);
+      await ref.delete();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -45,8 +70,7 @@ class _ProductDetailState extends State<ProductDetail> {
                         },
                       );
                     },
-                    child: Image.network(image,
-                        width: 400, height: 400, fit: BoxFit.cover),
+                    child: Image.network(image, width: double.infinity, fit: BoxFit.cover),
                   );
                 },
               );
@@ -80,7 +104,7 @@ class _ProductDetailState extends State<ProductDetail> {
               );
             },
             child: Image.network(widget.product.images.first,
-                height: 400, width: 400, fit: BoxFit.cover),
+                height: 400, width: double.infinity, fit: BoxFit.cover),
           ),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -130,22 +154,40 @@ class _ProductDetailState extends State<ProductDetail> {
           ),
         ),
         const SizedBox(height: 20),
-        Visibility(
-          visible: widget.propietario,
-          child: ElevatedButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => EditarArticulo(
-                    product: widget.product,
+        Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: Visibility(
+              visible: widget.propietario,
+              child: Row(
+                children: [
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => EditarProducto(
+                            product: widget.product,
+                          ),
+                        ),
+                      );
+                    },
+                    child: const Text('EDITAR'),
                   ),
-                ),
-              );
-            },
-            child: const Text('EDITAR PRODUCTO'),
-          ),
-        ),
+                  const SizedBox(height: 10), // Espacio entre los botones
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red,
+                      foregroundColor: Colors.white
+                    ),
+                    onPressed: () {
+                      deleteProduct(widget.product.id);
+                      deleteImages(widget.product.images);
+                    },
+                    child: const Text('ELIMINAR'),
+                  ),
+                ],
+              ),
+            )),
       ]),
     );
   }

@@ -18,7 +18,7 @@ class _SubirProductoState extends State<SubirProducto> {
   final _descriptionController = TextEditingController();
   final _priceController = TextEditingController();
   List<File>? _selectedImages;
-  final List<String> _categories = ['electronica', 'ropa', 'deporte', 'otros'];
+  final List<String> _categories = ['Electronica', 'Ropa', 'Deporte', 'Alimentos', 'Otros'];
   String? _selectedCategory;
   late bool _isLoading = false;
 
@@ -30,14 +30,10 @@ class _SubirProductoState extends State<SubirProducto> {
   }
 
   Future<String> uploadImage(File imageFile) async {
-    final storageRef = FirebaseStorage.instance.ref();
-    final imagesRef = storageRef.child("images/");
-    final filename = imageFile.path.split('/').last;
-    final imageRef = imagesRef.child(filename);
-    final uploadTask = imageRef.putFile(imageFile);
-
-    final snapshot = await uploadTask.whenComplete(() => null);
-    final downloadUrl = await snapshot.ref.getDownloadURL();
+    final String fileName = DateTime.now().millisecondsSinceEpoch.toString();
+    final Reference ref = FirebaseStorage.instance.ref().child(fileName);
+    final UploadTask uploadTask = ref.putFile(imageFile);
+    final downloadUrl = await (await uploadTask).ref.getDownloadURL();
     return downloadUrl;
   }
 

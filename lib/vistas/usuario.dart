@@ -18,14 +18,33 @@ class PerfilUsuario extends StatefulWidget {
 
 class _PerfilUsuarioState extends State<PerfilUsuario> {
   final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
-
-  late Future<List<Product>> futureProductosUsuario;
-  bool isLoading = true;
+  User? usuarioActual = FirebaseAuth.instance.currentUser;
 
   @override
   void initState() {
     super.initState();
-    futureProductosUsuario = obtenerProductosUsuario();
+  }
+
+  Future<DocumentSnapshot> getUserData() async {
+    String userId = usuarioActual?.uid ?? '';
+
+    return await FirebaseFirestore.instance
+        .collection('users')
+        .doc(userId)
+        .get();
+  }
+
+  Stream<List<Product>> obtenerProductosUsuario() {
+    String userId = usuarioActual?.uid ?? '';
+
+    // Usa snapshots() para obtener un Stream<QuerySnapshot>
+    return FirebaseFirestore.instance
+        .collection('products')
+        .where('userId', isEqualTo: userId)
+        .snapshots()
+        .map((querySnapshot) => querySnapshot.docs
+            .map((doc) => Product.fromFirestore(doc))
+            .toList()); // Mapea cada QuerySnapshot a una lista de productos
   }
 
   Future<bool> signOutUser() async {
@@ -35,18 +54,6 @@ class _PerfilUsuarioState extends State<PerfilUsuario> {
     final prefs = await _prefs;
     prefs.setBool('isLoggedIn', false);
     return true;
-  }
-
-  Future<List<Product>> obtenerProductosUsuario() async {
-    User? usuarioActual = FirebaseAuth.instance.currentUser;
-    String userId = usuarioActual?.uid ?? '';
-
-    QuerySnapshot querySnapshot = await FirebaseFirestore.instance
-        .collection('products')
-        .where('userId', isEqualTo: userId)
-        .get();
-
-    return querySnapshot.docs.map((doc) => Product.fromFirestore(doc)).toList();
   }
 
   @override
@@ -66,20 +73,31 @@ class _PerfilUsuarioState extends State<PerfilUsuario> {
           ),
 
           // Nombre y correo
-          const Padding(
-            padding: EdgeInsets.all(16.0),
-            child: Column(
-              children: [
-                Text(
-                  'Nombre de usuario',
-                  style: TextStyle(fontSize: 20),
-                ),
-                Text(
-                  'correo@ejemplo.com',
-                  style: TextStyle(fontSize: 16),
-                ),
-              ],
-            ),
+          FutureBuilder<DocumentSnapshot>(
+            future: getUserData(),
+            builder: (BuildContext context,
+                AsyncSnapshot<DocumentSnapshot> snapshot) {
+              if (snapshot.connectionState == ConnectionState.done) {
+                Map<String, dynamic> data =
+                    snapshot.data!.data() as Map<String, dynamic>;
+                return Column(
+                  children: [
+                    Text(
+                      data['username'],
+                      style: const TextStyle(fontSize: 20),
+                    ),
+                    Text(
+                      data['email'],
+                      style: const TextStyle(fontSize: 16),
+                    ),
+                  ],
+                );
+              } else if (snapshot.connectionState == ConnectionState.none) {
+                return const Text("No hay datos");
+              } else {
+                return const CircularProgressIndicator();
+              }
+            },
           ),
 
           // Productos a la venta
@@ -94,8 +112,9 @@ class _PerfilUsuarioState extends State<PerfilUsuario> {
 
           // Mostrar la lista de productos del usuario
           Expanded(
-            child: FutureBuilder<List<Product>>(
-              future: futureProductosUsuario,
+            child: StreamBuilder<List<Product>>(
+              stream:
+                  obtenerProductosUsuario(), // Pasa el stream a StreamBuilder
               builder: (BuildContext context,
                   AsyncSnapshot<List<Product>> snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
@@ -125,8 +144,8 @@ class _PerfilUsuarioState extends State<PerfilUsuario> {
                         child: ListTile(
                           leading: SizedBox(
                             // Contenedor con tamaño fijo
-                            width: 60,
-                            height: 60,
+                            width: 70,
+                            height: 70,
                             child: ClipRRect(
                               // Recortar la imagen con bordes redondeados (opcional)
                               borderRadius: BorderRadius.circular(8.0),
