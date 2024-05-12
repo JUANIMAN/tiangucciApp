@@ -18,46 +18,26 @@ class PerfilUsuario extends StatefulWidget {
 
 class _PerfilUsuarioState extends State<PerfilUsuario> {
   final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
-  User? usuarioActual = FirebaseAuth.instance.currentUser;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
 
   @override
   void initState() {
     super.initState();
   }
 
-  Future<DocumentSnapshot> getUserData() async {
-    String userId = usuarioActual?.uid ?? '';
-
-    return await FirebaseFirestore.instance
-        .collection('users')
-        .doc(userId)
-        .get();
-  }
-
-  Stream<List<Product>> obtenerProductosUsuario() {
-    String userId = usuarioActual?.uid ?? '';
-
-    // Usa snapshots() para obtener un Stream<QuerySnapshot>
-    return FirebaseFirestore.instance
-        .collection('products')
-        .where('userId', isEqualTo: userId)
-        .snapshots()
-        .map((querySnapshot) => querySnapshot.docs
-            .map((doc) => Product.fromFirestore(doc))
-            .toList()); // Mapea cada QuerySnapshot a una lista de productos
-  }
-
-  Future<bool> signOutUser() async {
+  Future<void> signOutUser() async {
     // Cerrar sesion
-    await FirebaseAuth.instance.signOut();
+    await _auth.signOut();
 
     final prefs = await _prefs;
     prefs.setBool('isLoggedIn', false);
-    return true;
   }
 
   @override
   Widget build(BuildContext context) {
+    final User? user = _auth.currentUser;
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
@@ -73,13 +53,16 @@ class _PerfilUsuarioState extends State<PerfilUsuario> {
           ),
 
           // Nombre y correo
-          FutureBuilder<DocumentSnapshot>(
-            future: getUserData(),
+          StreamBuilder<DocumentSnapshot>(
+            stream: _firestore.collection('users').doc(user?.uid).snapshots(),
             builder: (BuildContext context,
                 AsyncSnapshot<DocumentSnapshot> snapshot) {
-              if (snapshot.connectionState == ConnectionState.done) {
-                Map<String, dynamic> data =
-                    snapshot.data!.data() as Map<String, dynamic>;
+              if (snapshot.hasError) {
+                return const Text("No hay datos");
+              } else if (!snapshot.hasData) {
+                return const CircularProgressIndicator();
+              } else if (snapshot.hasData) {
+                Map<String, dynamic> data = snapshot.data!.data() as Map<String, dynamic>;
                 return Column(
                   children: [
                     Text(
@@ -92,11 +75,8 @@ class _PerfilUsuarioState extends State<PerfilUsuario> {
                     ),
                   ],
                 );
-              } else if (snapshot.connectionState == ConnectionState.none) {
-                return const Text("No hay datos");
-              } else {
-                return const CircularProgressIndicator();
               }
+              return const CircularProgressIndicator();
             },
           ),
 
@@ -113,8 +93,13 @@ class _PerfilUsuarioState extends State<PerfilUsuario> {
           // Mostrar la lista de productos del usuario
           Expanded(
             child: StreamBuilder<List<Product>>(
-              stream:
-                  obtenerProductosUsuario(), // Pasa el stream a StreamBuilder
+              stream: _firestore
+                  .collection('products')
+                  .where('userId', isEqualTo: user?.uid)
+                  .snapshots()
+                  .map((querySnapshot) => querySnapshot.docs
+                      .map((doc) => Product.fromFirestore(doc))
+                      .toList()),
               builder: (BuildContext context,
                   AsyncSnapshot<List<Product>> snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
@@ -208,12 +193,12 @@ class _PerfilUsuarioState extends State<PerfilUsuario> {
               foregroundColor: Colors.white,
               backgroundColor: Colors.red,
             ),
-            onPressed: () {
+            onPressed: () async {
               // Cerrar sesion y volver al home
-              signOutUser();
+              await signOutUser();
               Navigator.of(context).pushAndRemoveUntil(
                 MaterialPageRoute(builder: (context) => const MyHomePage()),
-                (Route<dynamic> route) => false,
+                    (Route<dynamic> route) => false,
               );
             },
             child: const Text('Cerrar Sesión'),

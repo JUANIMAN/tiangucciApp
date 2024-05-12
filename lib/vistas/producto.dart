@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
@@ -7,8 +8,7 @@ import 'package:tiangucci/vistas/editar_producto.dart';
 import 'package:tiangucci/vistas/productos.dart';
 
 class ProductDetail extends StatefulWidget {
-  const ProductDetail(
-      {super.key, required this.product, required this.propietario});
+  const ProductDetail({super.key, required this.product, required this.propietario});
   final bool propietario;
   final Product product;
 
@@ -17,13 +17,22 @@ class ProductDetail extends StatefulWidget {
 }
 
 class _ProductDetailState extends State<ProductDetail> {
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseStorage _storage = FirebaseStorage.instance;
   int _currentIndex = 0;
 
-  void deleteProduct(String productId) async {
-    CollectionReference products = FirebaseFirestore.instance.collection('products');
+  Future<void> deleteProductImage(Product product) async {
+    for (var image in product.images) {
+      var ref = _storage.refFromURL(image);
+      await ref.delete();
+    }
+  }
+
+  Future<void> deleteProduct(Product product) async {
+    CollectionReference products = _firestore.collection('products');
 
     try {
-      await products.doc(productId).delete();
+      await products.doc(product.id).delete();
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Producto eliminado exitosamente')),
       );
@@ -32,13 +41,6 @@ class _ProductDetailState extends State<ProductDetail> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('No se pudo eliminar el producto')),
       );
-    }
-  }
-
-  Future<void> deleteImages(List<String> imageUrls) async {
-    for (var imageUrl in imageUrls) {
-      var ref = FirebaseStorage.instance.refFromURL(imageUrl);
-      await ref.delete();
     }
   }
 
@@ -64,13 +66,16 @@ class _ProductDetailState extends State<ProductDetail> {
                               tag: 'imageHero',
                               child: PhotoView(
                                   imageProvider: NetworkImage(image),
-                                  initialScale: PhotoViewComputedScale.contained * 1,
-                                  minScale: PhotoViewComputedScale.contained * 1,
+                                  initialScale:
+                                      PhotoViewComputedScale.contained * 1,
+                                  minScale:
+                                      PhotoViewComputedScale.contained * 1,
                                   maxScale: PhotoViewComputedScale.covered));
                         },
                       );
                     },
-                    child: Image.network(image, width: double.infinity, fit: BoxFit.cover),
+                    child: Image.network(image,
+                        width: double.infinity, fit: BoxFit.cover),
                   );
                 },
               );
@@ -176,12 +181,11 @@ class _ProductDetailState extends State<ProductDetail> {
                   const SizedBox(height: 10), // Espacio entre los botones
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.red,
-                      foregroundColor: Colors.white
-                    ),
-                    onPressed: () {
-                      deleteProduct(widget.product.id);
-                      deleteImages(widget.product.images);
+                        backgroundColor: Colors.red,
+                        foregroundColor: Colors.white),
+                    onPressed: () async {
+                      await deleteProductImage(widget.product);
+                      await deleteProduct(widget.product);
                     },
                     child: const Text('ELIMINAR'),
                   ),

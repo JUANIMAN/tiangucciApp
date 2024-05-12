@@ -15,7 +15,16 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
-  final category = ['Todos', 'Electronica', 'Ropa', 'Deporte', 'Alimentos', 'Otros'];
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  final category = [
+    'Todos',
+    'Electronica',
+    'Ropa',
+    'Deporte',
+    'Alimentos',
+    'Otros'
+  ];
   String selectedCategory = 'Todos';
   bool _isLoggedIn = false;
 
@@ -50,9 +59,9 @@ class _MyHomePageState extends State<MyHomePage> {
   Stream<List<Product>> obtenerProductos(String category) {
     Query query;
     if (category == 'Todos') {
-      query = FirebaseFirestore.instance.collection('products');
+      query = _firestore.collection('products');
     } else {
-      query = FirebaseFirestore.instance
+      query = _firestore
           .collection('products')
           .where('category', isEqualTo: category);
     }
@@ -106,7 +115,8 @@ class _MyHomePageState extends State<MyHomePage> {
         ],
       ),
       body: StreamBuilder<List<Product>>(
-        stream: obtenerProductos(selectedCategory), // Pasa el stream a StreamBuilder
+        stream: obtenerProductos(
+            selectedCategory), // Pasa el stream a StreamBuilder
         builder: (BuildContext context, AsyncSnapshot<List<Product>> snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -143,7 +153,9 @@ class _MyHomePageState extends State<MyHomePage> {
                             // Recortar la imagen con bordes redondeados
                             borderRadius: BorderRadius.circular(14.0),
                             child: Image.network(product.images.first,
-                                height: double.infinity, width: double.infinity, fit: BoxFit.cover),
+                                height: double.infinity,
+                                width: double.infinity,
+                                fit: BoxFit.cover),
                           ),
                         ),
                         const SizedBox(height: 8),
