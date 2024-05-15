@@ -1,30 +1,42 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:tiangucci/vistas/articulo.dart';
-import 'package:tiangucci/vistas/home.dart';
+import 'package:tiangucci/vistas/producto.dart';
 import 'package:tiangucci/vistas/productos.dart';
 import 'package:tiangucci/vistas/registro_usuario.dart';
-import 'package:tiangucci/vistas/subir_articulo.dart';
+import 'package:tiangucci/vistas/subir_producto.dart';
 
-class PerfilUsuario extends StatelessWidget {
+import 'home.dart';
+
+class PerfilUsuario extends StatefulWidget {
   const PerfilUsuario({super.key});
 
-  List<Product> obtenerProductosUsuario() {
-    return productList; // Use the existing productList for demo
+  @override
+  State<PerfilUsuario> createState() => _PerfilUsuarioState();
+}
+
+class _PerfilUsuarioState extends State<PerfilUsuario> {
+  final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  Future<void> signOutUser() async {
+    // Cerrar sesion
+    await _auth.signOut();
+
+    final prefs = await _prefs;
+    prefs.setBool('isLoggedIn', false);
   }
 
   @override
   Widget build(BuildContext context) {
-    // Obtener la lista de productos del usuario
-    final List<Product> productosUsuario = obtenerProductosUsuario();
-    final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
-
-    Future<bool> signOut() async {
-      // Cerrar sesion
-      final prefs = await _prefs;
-      prefs.setBool('isLoggedIn', false);
-      return true;
-    }
+    final User? user = _auth.currentUser;
 
     return Scaffold(
       appBar: AppBar(
@@ -41,20 +53,31 @@ class PerfilUsuario extends StatelessWidget {
           ),
 
           // Nombre y correo
-          const Padding(
-            padding: EdgeInsets.all(16.0),
-            child: Column(
-              children: [
-                Text(
-                  'Nombre de usuario',
-                  style: TextStyle(fontSize: 20),
-                ),
-                Text(
-                  'correo@ejemplo.com',
-                  style: TextStyle(fontSize: 16),
-                ),
-              ],
-            ),
+          StreamBuilder<DocumentSnapshot>(
+            stream: _firestore.collection('users').doc(user?.uid).snapshots(),
+            builder: (BuildContext context,
+                AsyncSnapshot<DocumentSnapshot> snapshot) {
+              if (snapshot.hasError) {
+                return const Text("No hay datos");
+              } else if (!snapshot.hasData) {
+                return const CircularProgressIndicator();
+              } else if (snapshot.hasData) {
+                Map<String, dynamic> data = snapshot.data!.data() as Map<String, dynamic>;
+                return Column(
+                  children: [
+                    Text(
+                      data['username'],
+                      style: const TextStyle(fontSize: 20),
+                    ),
+                    Text(
+                      data['email'],
+                      style: const TextStyle(fontSize: 16),
+                    ),
+                  ],
+                );
+              }
+              return const CircularProgressIndicator();
+            },
           ),
 
           // Productos a la venta
@@ -69,43 +92,63 @@ class PerfilUsuario extends StatelessWidget {
 
           // Mostrar la lista de productos del usuario
           Expanded(
-            child: ListView.builder(
-              itemCount: productosUsuario.length,
-              itemBuilder: (context, index) {
-                final producto = productosUsuario[index];
-                return MaterialButton(
-                  // Enables tapping for edit functionality
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => ProductDetail(
-                          propietario: true,
-                          product: producto,
+            child: StreamBuilder<List<Product>>(
+              stream: _firestore
+                  .collection('products')
+                  .where('userId', isEqualTo: user?.uid)
+                  .snapshots()
+                  .map((querySnapshot) => querySnapshot.docs
+                      .map((doc) => Product.fromFirestore(doc))
+                      .toList()),
+              builder: (BuildContext context,
+                  AsyncSnapshot<List<Product>> snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                } else if (snapshot.hasError) {
+                  return const Center(
+                      child: Text('Error al cargar los productos'));
+                } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                  return const Center(
+                      child: Text('No hay productos disponibles'));
+                } else {
+                  List<Product> products = snapshot.data!;
+                  return ListView.builder(
+                    itemCount: products.length,
+                    itemBuilder: (context, index) {
+                      Product product = products[index];
+                      return GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => ProductDetail(
+                                  propietario: true, product: product),
+                            ),
+                          );
+                        },
+                        child: ListTile(
+                          leading: SizedBox(
+                            // Contenedor con tamaño fijo
+                            width: 70,
+                            height: 70,
+                            child: ClipRRect(
+                              // Recortar la imagen con bordes redondeados (opcional)
+                              borderRadius: BorderRadius.circular(8.0),
+                              child: Image.network(
+                                product.images.first,
+                                fit: BoxFit.cover,
+                              ),
+                            ),
+                          ),
+                          title: Text(product.name),
+                          subtitle:
+                              Text('\$${product.price.toStringAsFixed(2)}'),
+                          trailing: const Icon(Icons.arrow_forward),
                         ),
-                      ),
-                    );
-                  },
-                  child: ListTile(
-                    leading: SizedBox(
-                      // Contenedor con tamaño fijo
-                      width: 60,
-                      height: 60,
-                      child: ClipRRect(
-                        // Recortar la imagen con bordes redondeados (opcional)
-                        borderRadius: BorderRadius.circular(8.0),
-                        child: Image.asset(
-                          producto.images.first,
-                          fit: BoxFit
-                              .cover, // Rellena el contenedor manteniendo la relación de aspecto
-                        ),
-                      ),
-                    ),
-                    title: Text(producto.name),
-                    subtitle: Text('\$${producto.price.toStringAsFixed(2)}'),
-                    trailing: const Icon(Icons.arrow_forward),
-                  ),
-                );
+                      );
+                    },
+                  );
+                }
               },
             ),
           ),
@@ -150,12 +193,12 @@ class PerfilUsuario extends StatelessWidget {
               foregroundColor: Colors.white,
               backgroundColor: Colors.red,
             ),
-            onPressed: () {
+            onPressed: () async {
               // Cerrar sesion y volver al home
-              signOut();
+              await signOutUser();
               Navigator.of(context).pushAndRemoveUntil(
                 MaterialPageRoute(builder: (context) => const MyHomePage()),
-                (Route<dynamic> route) => false,
+                    (Route<dynamic> route) => false,
               );
             },
             child: const Text('Cerrar Sesión'),
