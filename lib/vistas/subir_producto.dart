@@ -4,7 +4,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:tiangucci/vistas/productos.dart';
 
 class SubirProducto extends StatefulWidget {
   const SubirProducto({super.key});
@@ -63,21 +62,6 @@ class _SubirProductoState extends State<SubirProducto> {
     String downloadURL = await taskSnapshot.ref.getDownloadURL();
 
     return downloadURL;
-  }
-
-  Future<bool> updateProduct(Product product) async {
-    try {
-      await _firestore.collection('products').doc(product.id).set({
-        'name': product.name,
-        'price': product.price,
-        'images': product.images,
-        'description': product.description,
-        'category': product.category.name,
-      });
-      return true;
-    } catch (e) {
-      return false;
-    }
   }
 
   Future<bool> uploadProduct() async {
