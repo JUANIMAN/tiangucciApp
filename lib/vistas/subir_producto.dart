@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:tiangucci/vistas/productos.dart';
 
 class SubirProducto extends StatefulWidget {
   const SubirProducto({super.key});
@@ -13,6 +14,10 @@ class SubirProducto extends StatefulWidget {
 }
 
 class _SubirProductoState extends State<SubirProducto> {
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseStorage _storage = FirebaseStorage.instance;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _descriptionController = TextEditingController();
@@ -27,10 +32,6 @@ class _SubirProductoState extends State<SubirProducto> {
   ];
   String? _selectedCategory;
   bool _isSubmitPressed = false;
-
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final FirebaseStorage _storage = FirebaseStorage.instance;
-  final FirebaseAuth _auth = FirebaseAuth.instance;
 
   @override
   void initState() {
@@ -64,14 +65,29 @@ class _SubirProductoState extends State<SubirProducto> {
     return downloadURL;
   }
 
-  Future<void> uploadProduct() async {
+  Future<bool> updateProduct(Product product) async {
+    try {
+      await _firestore.collection('products').doc(product.id).set({
+        'name': product.name,
+        'price': product.price,
+        'images': product.images,
+        'description': product.description,
+        'category': product.category.name,
+      });
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  Future<bool> uploadProduct() async {
     try {
       // Obtén el UID del usuario actual
       final User? user = _auth.currentUser;
 
       String productId = await createEmptyDocument();
 
-      // Upload images if any
+      // Upload images
       List<String> imageUrls = [];
       for (final imageFile in _selectedImages) {
         final imageUrl = await uploadProductImage(productId, imageFile);
@@ -91,14 +107,9 @@ class _SubirProductoState extends State<SubirProducto> {
       // Store product in Firestore
       await _firestore.collection('products').doc(productId).set(productData);
 
-      // Show success message and navigate back
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Producto subido exitosamente')),
-      );
-    } catch (error) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Error al subir el producto')),
-      );
+      return true;
+    } catch (e) {
+      return false;
     }
   }
 
@@ -202,12 +213,13 @@ class _SubirProductoState extends State<SubirProducto> {
                       if (_selectedImages.isNotEmpty)
                         SizedBox(
                           height: 200.0,
-                          child: ListView.builder(
+                          child: ReorderableListView.builder(
                             scrollDirection: Axis.horizontal,
                             itemCount: _selectedImages.length,
                             itemBuilder: (BuildContext context, int index) {
                               final imageFile = _selectedImages[index];
                               return Stack(
+                                key: Key('$index'),
                                 alignment: Alignment.topRight,
                                 children: <Widget>[
                                   Image.file(
@@ -229,6 +241,16 @@ class _SubirProductoState extends State<SubirProducto> {
                                 ],
                               );
                             },
+                            onReorder: (int oldIndex, int newIndex) {
+                              setState(() {
+                                if (oldIndex < newIndex) {
+                                  newIndex -= 1;
+                                }
+                                final File image =
+                                    _selectedImages.removeAt(oldIndex);
+                                _selectedImages.insert(newIndex, image);
+                              });
+                            },
                           ),
                         ),
 
@@ -237,18 +259,39 @@ class _SubirProductoState extends State<SubirProducto> {
                         width: 200,
                         child: ElevatedButton(
                           onPressed: () async {
-                            if (_formKey.currentState!.validate()) {
+                            if (_formKey.currentState!.validate() &&
+                                _selectedImages.isNotEmpty) {
                               setState(() {
                                 _isSubmitPressed = true;
                               });
 
-                              await uploadProduct();
+                              bool isUpload = await uploadProduct();
+
+                              if (isUpload) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                      content:
+                                          Text('Producto subido exitosamente')),
+                                );
+                              } else {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                      content:
+                                          Text('Error al subir el producto')),
+                                );
+                              }
 
                               setState(() {
                                 _isSubmitPressed = false;
                               });
 
                               Navigator.pop(context);
+                            } else {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                    content:
+                                        Text('Selecciona al menos una imagen')),
+                              );
                             }
                           },
                           child: const Text('Subir producto'),

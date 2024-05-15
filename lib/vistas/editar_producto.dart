@@ -16,12 +16,12 @@ class EditarProducto extends StatefulWidget {
 }
 
 class _EditarProductoState extends State<EditarProducto> {
-  final _formKey = GlobalKey<FormState>();
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseStorage _storage = FirebaseStorage.instance;
+
   late TextEditingController _nameController;
   late TextEditingController _priceController;
   late TextEditingController _descriptionController;
-  final FirebaseStorage _storage = FirebaseStorage.instance;
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final List<String> _categories = [
     'Electronica',
     'Ropa',
@@ -40,10 +40,8 @@ class _EditarProductoState extends State<EditarProducto> {
   void initState() {
     super.initState();
     _nameController = TextEditingController(text: widget.product.name);
-    _priceController =
-        TextEditingController(text: widget.product.price.toString());
-    _descriptionController =
-        TextEditingController(text: widget.product.description);
+    _priceController = TextEditingController(text: widget.product.price.toString());
+    _descriptionController = TextEditingController(text: widget.product.description);
     _selectedCategory = widget.product.category.name;
     _productImagesCopy = List.from(widget.product.images);
     _selectedImages = [];
@@ -74,15 +72,21 @@ class _EditarProductoState extends State<EditarProducto> {
     return downloadURL;
   }
 
-  Future<void> updateProduct(Product product) async {
-    await _firestore.collection('products').doc(product.id).update({
-      'name': product.name,
-      'price': product.price,
-      'images': product.images,
-      'description': product.description,
-      'category': product.category.name,
-    });
+  Future<bool> updateProduct(Product product) async {
+    try {
+      await _firestore.collection('products').doc(product.id).update({
+        'name': product.name,
+        'price': product.price,
+        'images': product.images,
+        'description': product.description,
+        'category': product.category.name,
+      });
+      return true;
+    } catch (e) {
+      return false;
+    }
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -101,39 +105,50 @@ class _EditarProductoState extends State<EditarProducto> {
                 child: Form(
                   child: Column(
                     children: [
-                      SizedBox(
-                        height: 200.0,
-                        child: ListView.builder(
-                          scrollDirection: Axis.horizontal,
-                          itemCount: _productImagesCopy.length,
-                          itemBuilder: (BuildContext context, int index) {
-                            final image = _productImagesCopy[index];
-                            return Stack(
-                              alignment: Alignment.topRight,
-                              children: <Widget>[
-                                Image.network(
-                                  image,
-                                  width: 200.0,
-                                  height: 200.0,
-                                  fit: BoxFit.cover,
-                                ),
-                                IconButton(
-                                  icon: const Icon(Icons.remove_circle,
-                                      color: Colors.red),
-                                  onPressed: () {
-                                    setState(() {
-                                      // Añade la imagen a la lista de imágenes eliminadas
-                                      _deletedImages.add(image);
-                                      // Elimina la imagen de la lista _productImagesCopy
-                                      _productImagesCopy.removeAt(index);
-                                    });
-                                  },
-                                ),
-                              ],
-                            );
-                          },
+                      if (_productImagesCopy.isNotEmpty)
+                        SizedBox(
+                          height: 200.0,
+                          child: ReorderableListView.builder(
+                            scrollDirection: Axis.horizontal,
+                            itemCount: _productImagesCopy.length,
+                            itemBuilder: (BuildContext context, int index) {
+                              final image = _productImagesCopy[index];
+                              return Stack(
+                                key: Key('$index'),
+                                alignment: Alignment.topRight,
+                                children: <Widget>[
+                                  Image.network(
+                                    image,
+                                    width: 200.0,
+                                    height: 200.0,
+                                    fit: BoxFit.cover,
+                                  ),
+                                  IconButton(
+                                    icon: const Icon(Icons.remove_circle,
+                                        color: Colors.red),
+                                    onPressed: () {
+                                      setState(() {
+                                        // Añade la imagen a la lista de imágenes eliminadas
+                                        _deletedImages.add(image);
+                                        // Elimina la imagen de la lista _productImagesCopy
+                                        _productImagesCopy.removeAt(index);
+                                      });
+                                    },
+                                  ),
+                                ],
+                              );
+                            },
+                            onReorder: (int oldIndex, int newIndex) {
+                              setState(() {
+                                if (oldIndex < newIndex) {
+                                  newIndex -= 1;
+                                }
+                                final String image = _productImagesCopy.removeAt(oldIndex);
+                                _productImagesCopy.insert(newIndex, image);
+                              });
+                            },
+                          ),
                         ),
-                      ),
 
                       const SizedBox(height: 16.0),
                       TextFormField(
@@ -154,13 +169,12 @@ class _EditarProductoState extends State<EditarProducto> {
                       const SizedBox(height: 16.0),
                       TextFormField(
                         controller: _descriptionController,
-                        maxLines: 2,
+                        maxLines: 4,
                         decoration: const InputDecoration(
-                          labelText: 'Descripcion',
-                          prefixIcon: Icon(Icons.text_snippet_outlined),
-                        ),
+                            labelText: 'Descripción del producto',
+                            prefixIcon: Icon(Icons.text_snippet_outlined)),
                         validator: (value) {
-                          if (value!.isEmpty) {
+                          if (value == null || value.isEmpty) {
                             return 'La descripción del producto es obligatoria';
                           }
                           return null;
@@ -171,13 +185,19 @@ class _EditarProductoState extends State<EditarProducto> {
                       const SizedBox(height: 16.0),
                       TextFormField(
                         controller: _priceController,
+                        keyboardType: TextInputType.number,
                         decoration: const InputDecoration(
-                          labelText: 'Precio',
+                          labelText: 'Precio del producto',
                           prefixIcon: Icon(Icons.currency_exchange),
                         ),
                         validator: (value) {
-                          if (value!.isEmpty) {
-                            return 'El precio es obligatorio';
+                          if (value == null || value.isEmpty) {
+                            return 'El precio del producto es obligatorio';
+                          }
+                          try {
+                            double.parse(value);
+                          } catch (e) {
+                            return 'El precio debe ser un número válido';
                           }
                           return null;
                         },
@@ -213,12 +233,13 @@ class _EditarProductoState extends State<EditarProducto> {
                       if (_selectedImages.isNotEmpty)
                         SizedBox(
                           height: 200.0,
-                          child: ListView.builder(
+                          child: ReorderableListView.builder(
                             scrollDirection: Axis.horizontal,
                             itemCount: _selectedImages.length,
                             itemBuilder: (BuildContext context, int index) {
                               final imageFile = _selectedImages[index];
                               return Stack(
+                                key: Key('$index'),
                                 alignment: Alignment.topRight,
                                 children: <Widget>[
                                   Image.file(
@@ -238,7 +259,16 @@ class _EditarProductoState extends State<EditarProducto> {
                                   ),
                                 ],
                               );
-                                                        },
+                            },
+                            onReorder: (int oldIndex, int newIndex) {
+                              setState(() {
+                                if (oldIndex < newIndex) {
+                                  newIndex -= 1;
+                                }
+                                final File image = _selectedImages.removeAt(oldIndex);
+                                _selectedImages.insert(newIndex, image);
+                              });
+                            },
                           ),
                         ),
 
@@ -246,55 +276,77 @@ class _EditarProductoState extends State<EditarProducto> {
                       const SizedBox(height: 16.0),
                       ElevatedButton(
                         onPressed: () async {
-                          setState(() {
-                            _isSubmitPressed = true;
-                          });
+                          if (_selectedImages.isNotEmpty ||
+                              _productImagesCopy.isNotEmpty) {
+                            setState(() {
+                              _isSubmitPressed = true;
+                            });
 
-                          // Actualiza la lista original de imágenes
-                          _productImages = _productImagesCopy;
+                            // Actualiza la lista original de imágenes
+                            _productImages = _productImagesCopy;
 
-                          // Elimina las imágenes indicadas de Firebase Storage
-                          for (var image in _deletedImages) {
-                            await deleteProductImage(image);
-                          }
+                            // Elimina las imágenes indicadas de Firebase Storage
+                            if (_deletedImages.isNotEmpty) {
+                              for (var image in _deletedImages) {
+                                await deleteProductImage(image);
+                              }
+                            }
 
-                          // Upload images
-                          List<String> newImageUrls = _productImages;
-                          for (final imageFile in _selectedImages) {
-                            final imageUrl = await uploadProductImage(
-                                widget.product, imageFile);
-                            newImageUrls.add(imageUrl);
-                          }
+                            // Upload images
+                            List<String> newImageUrls = _productImages;
+                            if (_selectedImages.isNotEmpty) {
+                              for (final imageFile in _selectedImages) {
+                                final imageUrl = await uploadProductImage(
+                                    widget.product, imageFile);
+                                newImageUrls.add(imageUrl);
+                              }
+                            }
 
-                          // Crea un nuevo objeto Product con los valores actualizados
-                          Product updatedProduct = Product(
-                            id: widget.product.id,
-                            name: _nameController.text,
-                            price: double.parse(_priceController.text),
-                            images: newImageUrls,
-                            description: _descriptionController.text,
-                            category: Category(name: _selectedCategory),
-                          );
+                            // Crea un nuevo objeto Product con los valores actualizados
+                            Product updatedProduct = Product(
+                              id: widget.product.id,
+                              name: _nameController.text,
+                              price: double.parse(_priceController.text),
+                              images: newImageUrls,
+                              description: _descriptionController.text,
+                              category: Category(name: _selectedCategory),
+                            );
 
-                          // Actualiza el documento del producto en Firestore
-                          await updateProduct(updatedProduct);
+                            // Actualiza el documento del producto en Firestore
+                            bool isUpdated = await updateProduct(updatedProduct);
 
-                          // Muestra un mensaje de éxito
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                                content:
+                            if (isUpdated) {
+                              // Muestra un mensaje de éxito
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                    content:
                                     Text('Producto actualizado con éxito')),
-                          );
+                              );
+                            } else {
+                              // Muestra un mensaje de Error
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                    content:
+                                    Text('El producto no se actualizó correctamente')),
+                              );
+                            }
 
-                          setState(() {
-                            _isSubmitPressed = false;
-                          });
+                            setState(() {
+                              _isSubmitPressed = false;
+                            });
 
-                          Navigator.of(context).pushAndRemoveUntil(
-                            MaterialPageRoute(
-                                builder: (context) => const PerfilUsuario()),
-                            ModalRoute.withName('/'),
-                          );
+                            Navigator.of(context).pushAndRemoveUntil(
+                              MaterialPageRoute(
+                                  builder: (context) => const PerfilUsuario()),
+                              ModalRoute.withName('/'),
+                            );
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                  content: Text(
+                                      'Debe haber al menos una imagen que mostrar')),
+                            );
+                          }
                         },
                         child: const Text('Subir cambios'),
                       ),
