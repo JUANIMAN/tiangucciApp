@@ -1,4 +1,4 @@
-# tiangucci
+# tiangucciApp
 
 Aplicacion Movil para el tiangucci
 
