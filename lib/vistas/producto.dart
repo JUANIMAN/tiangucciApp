@@ -7,7 +7,8 @@ import 'package:tiangucci/vistas/editar_producto.dart';
 import 'package:tiangucci/vistas/productos.dart';
 
 class ProductDetail extends StatefulWidget {
-  const ProductDetail({super.key, required this.product, required this.propietario});
+  const ProductDetail(
+      {super.key, required this.product, required this.propietario});
   final bool propietario;
   final Product product;
 
@@ -63,19 +64,23 @@ class _ProductDetailState extends State<ProductDetail> {
                         context: context,
                         builder: (BuildContext context) {
                           return Hero(
-                              tag: 'imageHero',
-                              child: PhotoView(
-                                  imageProvider: NetworkImage(image),
-                                  initialScale:
-                                      PhotoViewComputedScale.contained * 1,
-                                  minScale:
-                                      PhotoViewComputedScale.contained * 1,
-                                  maxScale: PhotoViewComputedScale.covered));
+                            tag: 'imageHero',
+                            child: PhotoView(
+                              imageProvider: NetworkImage(image),
+                              initialScale:
+                                  PhotoViewComputedScale.contained * 1,
+                              minScale: PhotoViewComputedScale.contained * 1,
+                              maxScale: PhotoViewComputedScale.covered,
+                            ),
+                          );
                         },
                       );
                     },
-                    child: Image.network(image,
-                        width: double.infinity, fit: BoxFit.cover),
+                    child: Image.network(
+                      image,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                    ),
                   );
                 },
               );
@@ -108,8 +113,12 @@ class _ProductDetailState extends State<ProductDetail> {
                 },
               );
             },
-            child: Image.network(widget.product.images.first,
-                height: 400, width: double.infinity, fit: BoxFit.cover),
+            child: Image.network(
+              widget.product.images.first,
+              height: 400,
+              width: double.infinity,
+              fit: BoxFit.cover,
+            ),
           ),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -118,8 +127,7 @@ class _ProductDetailState extends State<ProductDetail> {
             return Container(
               width: 8.0,
               height: 8.0,
-              margin:
-                  const EdgeInsets.symmetric(vertical: 10.0, horizontal: 2.0),
+              margin: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 2.0),
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: _currentIndex == index

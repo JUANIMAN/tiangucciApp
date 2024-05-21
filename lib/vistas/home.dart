@@ -83,7 +83,9 @@ class _MyHomePageState extends State<MyHomePage> {
             margin: const EdgeInsets.all(10.0),
             padding: const EdgeInsets.only(left: 15.0, right: 5.0),
             decoration: BoxDecoration(
-                color: Colors.white, borderRadius: BorderRadius.circular(10)),
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(10),
+            ),
             child: DropdownButton<String>(
               value: selectedCategory,
               onChanged: (String? newValue) {
@@ -128,7 +130,7 @@ class _MyHomePageState extends State<MyHomePage> {
             List<Product> products = snapshot.data!;
             return GridView.builder(
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2, // Dos columnas
+                crossAxisCount: 2, // Número de columnas
                 childAspectRatio: 0.7, // Relación de aspecto para la imagen
               ),
               itemCount: products.length,
@@ -152,10 +154,12 @@ class _MyHomePageState extends State<MyHomePage> {
                           child: ClipRRect(
                             // Recortar la imagen con bordes redondeados
                             borderRadius: BorderRadius.circular(14.0),
-                            child: Image.network(product.images.first,
-                                height: double.infinity,
-                                width: double.infinity,
-                                fit: BoxFit.cover),
+                            child: Image.network(
+                              product.images.first,
+                              height: double.infinity,
+                              width: double.infinity,
+                              fit: BoxFit.cover,
+                            ),
                           ),
                         ),
                         const SizedBox(height: 8),

@@ -46,7 +46,6 @@ class _SubirProductoState extends State<SubirProducto> {
   }
 
   Future<String> createEmptyDocument() async {
-    // Crea un nuevo documento en la colección 'products' y obtén su ID
     DocumentReference docRef = await _firestore.collection('products').add({});
     return docRef.id;
   }
@@ -109,7 +108,6 @@ class _SubirProductoState extends State<SubirProducto> {
         body: Stack(
           children: <Widget>[
             SingleChildScrollView(
-              // Allow scrolling if content exceeds screen height
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Form(
@@ -230,8 +228,7 @@ class _SubirProductoState extends State<SubirProducto> {
                                 if (oldIndex < newIndex) {
                                   newIndex -= 1;
                                 }
-                                final File image =
-                                    _selectedImages.removeAt(oldIndex);
+                                final File image = _selectedImages.removeAt(oldIndex);
                                 _selectedImages.insert(newIndex, image);
                               });
                             },
@@ -243,8 +240,7 @@ class _SubirProductoState extends State<SubirProducto> {
                         width: 200,
                         child: ElevatedButton(
                           onPressed: () async {
-                            if (_formKey.currentState!.validate() &&
-                                _selectedImages.isNotEmpty) {
+                            if (_formKey.currentState!.validate() && _selectedImages.isNotEmpty) {
                               setState(() {
                                 _isSubmitPressed = true;
                               });

@@ -22,10 +22,8 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       initialRoute: '/',
       routes: {
-        // Definir las rutas aquí
         '/': (context) => const MyHomePage(),
         '/perfilUsuario': (context) => const PerfilUsuario(),
-        // Agregar más rutas según sea necesario
       },
       title: 'Flutter Demo',
       theme: ThemeData(

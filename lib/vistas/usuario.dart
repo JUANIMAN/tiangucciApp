@@ -141,8 +141,7 @@ class _PerfilUsuarioState extends State<PerfilUsuario> {
                             ),
                           ),
                           title: Text(product.name),
-                          subtitle:
-                              Text('\$${product.price.toStringAsFixed(2)}'),
+                          subtitle: Text('\$${product.price.toStringAsFixed(2)}'),
                           trailing: const Icon(Icons.arrow_forward),
                         ),
                       );

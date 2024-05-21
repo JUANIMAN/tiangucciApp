@@ -38,8 +38,7 @@ class _RegisterPageState extends State<RegisterPage> {
   Future<void> getUserData() async {
     final User? user = _auth.currentUser;
 
-    DocumentSnapshot userDoc =
-        await _firestore.collection('users').doc(user?.uid).get();
+    DocumentSnapshot userDoc = await _firestore.collection('users').doc(user?.uid).get();
 
     Map<String, dynamic> data = userDoc.data() as Map<String, dynamic>;
     _nameController.text = data['username'];
@@ -85,8 +84,7 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 
   Future createUserInFirestore(User user, String username, String phone) async {
-    DocumentSnapshot doc =
-        await _firestore.collection('users').doc(user.uid).get();
+    DocumentSnapshot doc = await _firestore.collection('users').doc(user.uid).get();
 
     if (!doc.exists) {
       _firestore.collection('users').doc(user.uid).set({

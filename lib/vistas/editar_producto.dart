@@ -276,8 +276,7 @@ class _EditarProductoState extends State<EditarProducto> {
                       const SizedBox(height: 16.0),
                       ElevatedButton(
                         onPressed: () async {
-                          if (_selectedImages.isNotEmpty ||
-                              _productImagesCopy.isNotEmpty) {
+                          if (_selectedImages.isNotEmpty || _productImagesCopy.isNotEmpty) {
                             setState(() {
                               _isSubmitPressed = true;
                             });
