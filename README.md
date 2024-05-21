@@ -2,6 +2,8 @@
 
 Aplicacion Movil para el tiangucci
 
+![icon](https://github.com/JUANIMAN/tiangucciApp/assets/84895566/60438567-f187-4394-9387-890c55b00962)
+
 ## Getting Started
 
 Aplicacion para ayudar a la comunidad de la fes aragon, en la compraventa de diversos insumos.
