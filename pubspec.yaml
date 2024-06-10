@@ -39,10 +39,10 @@ dependencies:
   image_picker: ^1.0.8
   carousel_slider: ^4.2.1
   photo_view: ^0.15.0
-  firebase_core: ^2.30.1
-  cloud_firestore: ^4.17.2
-  firebase_storage: ^11.7.4
-  firebase_auth: ^4.19.5
+  firebase_core: ^3.0.0
+  cloud_firestore: ^5.0.0
+  firebase_storage: ^12.0.0
+  firebase_auth: ^5.0.0
   flutter_launcher_icons: ^0.13.1
 
 dev_dependencies:
@@ -61,9 +61,8 @@ dev_dependencies:
 
 flutter_launcher_icons:
   android: launcher_icon
-  ios: false
   image_path: assets/icon/icon.jpg
-  min_sdk_android: 21
+  min_sdk_android: 23
 
 # The following section is specific to Flutter packages.
 flutter:
