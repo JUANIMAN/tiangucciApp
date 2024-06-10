@@ -1,6 +1,8 @@
-# tiangucci
+# tiangucciApp
 
-Aplicacion Movil para el tiangucci
+Aplicacion Movil para el tiangucci de la FES ARAGON
+
+![icon](https://github.com/JUANIMAN/tiangucciApp/assets/84895566/60438567-f187-4394-9387-890c55b00962)
 
 ## Getting Started
 
