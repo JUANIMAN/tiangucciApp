@@ -3,6 +3,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:photo_view/photo_view.dart';
+import 'package:photo_view/photo_view_gallery.dart';
 import 'package:tiangucci/vistas/editar_producto.dart';
 import 'package:tiangucci/vistas/productos.dart';
 
@@ -63,23 +64,49 @@ class _ProductDetailState extends State<ProductDetail> {
                     builder: (BuildContext context) {
                       return GestureDetector(
                         onTap: () {
+                          // Al tocar, muestra la imagen en pantalla completa
                           showDialog(
                             context: context,
                             builder: (BuildContext context) {
-                              return Hero(
-                                tag: 'imageHero',
-                                child: PhotoView(
-                                  imageProvider: NetworkImage(image),
-                                  initialScale: PhotoViewComputedScale.contained * 1,
-                                  minScale: PhotoViewComputedScale.contained * 1,
-                                  maxScale: PhotoViewComputedScale.covered,
-                                ),
+                              return Stack(
+                                children: <Widget>[
+                                  // Galería de fotos con control de índice
+                                  PhotoViewGallery.builder(
+                                    pageController: PageController(initialPage: _currentIndex),
+                                    itemCount: widget.product.images.length,
+                                    builder: (context, index) {
+                                      return PhotoViewGalleryPageOptions(
+                                        imageProvider: NetworkImage(widget.product.images[index]),
+                                        initialScale: PhotoViewComputedScale.contained * 1,
+                                        minScale: PhotoViewComputedScale.contained * 1,
+                                        maxScale: PhotoViewComputedScale.covered,
+                                      );
+                                    },
+                                    scrollPhysics: const ScrollPhysics(),
+                                    loadingBuilder: (context, event) => const Center(
+                                      child: CircularProgressIndicator(),
+                                    ),
+                                  ),
+                                  // Botón para cerrar la vista de pantalla completa
+                                  Positioned(
+                                    top: 40.0,
+                                    right: 10.0,
+                                    child: IconButton(
+                                      icon: const Icon(Icons.close, color: Colors.white, size: 30.0),
+                                      onPressed: () {
+                                        Navigator.of(context).pop();
+                                      },
+                                    ),
+                                  ),
+                                ],
                               );
                             },
                           );
                         },
+                        // Imagen del carrusel
                         child: Image.network(
                           image,
+                          height: 400,
                           width: double.infinity,
                           fit: BoxFit.cover,
                         ),
@@ -91,6 +118,7 @@ class _ProductDetailState extends State<ProductDetail> {
                   height: 400,
                   viewportFraction: 1.0,
                   onPageChanged: (index, reason) {
+                    // Actualiza el índice actual cuando cambia la página
                     setState(() {
                       _currentIndex = index;
                     });
@@ -100,21 +128,38 @@ class _ProductDetailState extends State<ProductDetail> {
             else if (widget.product.images.isNotEmpty)
               GestureDetector(
                 onTap: () {
+                  // Al tocar, muestra la imagen en pantalla completa
                   showDialog(
                     context: context,
                     builder: (BuildContext context) {
-                      return Hero(
-                        tag: 'imageHero',
-                        child: PhotoView(
-                          imageProvider: NetworkImage(widget.product.images.first),
-                          initialScale: PhotoViewComputedScale.contained * 1,
-                          minScale: PhotoViewComputedScale.contained * 1,
-                          maxScale: PhotoViewComputedScale.covered,
-                        ),
+                      return Stack(
+                        children: [
+                          // Vista de foto única
+                          PhotoView(
+                            imageProvider:
+                                NetworkImage(widget.product.images.first),
+                            initialScale: PhotoViewComputedScale.contained * 1,
+                            minScale: PhotoViewComputedScale.contained * 1,
+                            maxScale: PhotoViewComputedScale.covered,
+                          ),
+                          // Botón para cerrar la vista de pantalla completa
+                          Positioned(
+                            top: 40.0,
+                            right: 10.0,
+                            child: IconButton(
+                              icon: const Icon(Icons.close,
+                                  color: Colors.white, size: 30.0),
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                              },
+                            ),
+                          ),
+                        ],
                       );
                     },
                   );
                 },
+                // Imagen única del carrusel
                 child: Image.network(
                   widget.product.images.first,
                   height: 400,
@@ -129,8 +174,7 @@ class _ProductDetailState extends State<ProductDetail> {
                 return Container(
                   width: 8.0,
                   height: 8.0,
-                  margin: const EdgeInsets.symmetric(
-                      vertical: 10.0, horizontal: 2.0),
+                  margin: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 2.0),
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     color: _currentIndex == index
